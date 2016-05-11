@@ -39,3 +39,8 @@ var getVector = function(circle, mouseDx, mouseDy) {
 		dy: getSpeedFraction(Math.abs(mouseDy))*maxSpeed*mouseDy/Math.abs(mouseDy)
 	};
 };
+
+console.log("Circle 1:", circle1);
+console.log("Circle 2:", circle2);
+console.log("Have they collided?", haveCollided(circle1, circle2));
+console.log("Potential post-collision radius of bigger circle:", getPostGobbleRadius(circle1.radius, circle2.radius));
