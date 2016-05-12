@@ -4,8 +4,8 @@ var KEY_LEFT = 37;
 var KEY_UP = 38;
 var KEY_RIGHT = 39;
 var KEY_DOWN = 40;
-var WIDTH = 800;
-var HEIGHT = 800;
+var WIDTH = 900;
+var HEIGHT = 900;
 var STATE = {
     x: 150,
     y: 150,
@@ -14,7 +14,7 @@ var STATE = {
 var MAX_SPEED = 10;
 var canvas;
 var context;
-
+var bubbles;
 
 // takes in a position x and y at its center and radius to create a circle
 function drawCircle(centerX, centerY, radius, color) {
@@ -53,30 +53,31 @@ var getRandomColor = function() {
 };
 
 var autoMove = function(bubble) {
-    console.log("moving...");
-    
-
-    drawCircle(bubble.x+=bubble.dx, bubble.y+=bubble.dy, bubble.radius, bubble.color);
+    //console.log("moving...");
+    drawCircle(bubble.x, bubble.y, bubble.radius, bubble.color);
 };
 
-var generateBubble = function() {
-    var radius = Math.floor(Math.random()*90+10);
+var generateBubble = function(name) {
+    var radius = Math.floor(Math.random()*30+10);
     return {
+        name: name,
         x: Math.floor(Math.random()*WIDTH),
         y: Math.floor(Math.random()*HEIGHT),
         radius: radius,
-        dx: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
-        dy: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
+        vector: {
+            dx: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
+            dy: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1)
+        },
         color: getRandomColor()
     };
 }
 
 var seedBubbles = function(reps) {
-    var ret = [];
+    var ret = {};
     for(var i = 0; i < reps; i++) {
-        var bubble = generateBubble();
-        console.log(bubble.dx)
-        ret.push(bubble);
+        var bubble = generateBubble(i);
+        console.log(bubble);
+        ret[bubble.name] = bubble;
     }
     return ret;
 };
@@ -107,11 +108,15 @@ window.onload = function() {
         }
     }, false)
 
-    var bubbles = seedBubbles(100);
+    bubbles = seedBubbles(30);
+
+    var engine = new Engine(-1, WIDTH, HEIGHT, bubbles, true);
     window.setInterval(function() {
-        context.clearRect(0,0,900,900);
-        bubbles.forEach(function(bubble) {
-            autoMove(bubble);
+        context.clearRect(0,0,WIDTH,HEIGHT);
+        engine.updateState();
+            
+        Object.keys(bubbles).forEach(function(key) {
+            autoMove(bubbles[key]);
         });
     }.bind(this), 35);
 }

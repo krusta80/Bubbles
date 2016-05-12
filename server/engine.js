@@ -1,6 +1,6 @@
 var gameFunctions = require('./functions');
 
-var Engine = function(framesPerSecond, width, height, maxBubbles) {
+var Engine = function(framesPerSecond, width, height, maxBubbles, bouncyWalls) {
 	this.FPS = framesPerSecond;
 	this.width = width;
 	this.height = height;
@@ -9,6 +9,7 @@ var Engine = function(framesPerSecond, width, height, maxBubbles) {
 	this.bubbleKeys = [];
 	this.pellets = {};
 	this.frame = 0;
+	this.bouncyWalls = bouncyWalls;
 };
 
 Engine.prototype.updateState = function() {
@@ -21,7 +22,7 @@ Engine.prototype.updateState = function() {
 	//	first we update the positions 						O(n)
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
-		if(bubble.vector) {
+		if(bubble.vector && !this.bouncyWalls) {
 			tmp = bubble.x + bubble.vector.dx;
 			if(tmp >= 0 && tmp < this.width)
 				bubble.x = tmp;
@@ -29,6 +30,18 @@ Engine.prototype.updateState = function() {
 			if(tmp >= 0 && tmp < this.height)
 				bubble.y = tmp;
 			delete bubble.vector;
+		}
+		else {
+			tmp = bubble.x + bubble.vector.dx;
+			if(tmp >= 0 && tmp < this.width)
+				bubble.x = tmp;
+			else 
+				bubble.vector.x *= -1;
+			tmp = bubble.y + bubble.vector.dy;
+			if(tmp >= 0 && tmp < this.height)
+				bubble.y = tmp;
+			else
+				bubble.vextor.y *= -1;
 		}
 	}
 
@@ -52,3 +65,4 @@ Engine.prototype.updateState = function() {
 	if(bubbleLost)
 		this.bubbleKeys = Object.keys(this.bubbles);
 };
+
