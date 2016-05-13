@@ -1,13 +1,39 @@
-var Engine = function(framesPerSecond, width, height, bubbles, bouncyWalls) {
+var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls) {
+	gameFunctions.STARTING_RADIUS = radiusLength;
+	gameFunctions.STARTING_MAX_SPEED = 5*radiusLength;
 	this.FPS = framesPerSecond;
 	this.width = width;
 	this.height = height;
-	//this.maxBubbles = maxBubbles;
-	this.bubbles = bubbles;
-	this.bubbleKeys = Object.keys(bubbles);
+	this.bubbles = {};
+	this.bubbleKeys = [];
 	this.pellets = {};
 	this.frame = 0;
 	this.bouncyWalls = bouncyWalls;
+};
+
+Engine.prototype.addBubbles = function(newBubbles) {
+	newBubbles.forEach(function(newBubble) {
+		this._spawnBubble(newBubble);
+	}.bind(this));
+	this.bubbleKeys = Object.keys(this.bubbles);
+};
+
+Engine.prototype._spawnBubble = function(newBubble) {
+	while(!this.isClear(newBubble)) {
+		newBubble.x = Math.floor(Math.random()*this.width);
+		newBubble.y = Math.floor(Math.random()*this.height);
+	}
+	this.bubbles[newBubble.name] = newBubble;
+};
+
+Engine.prototype.isClear = function(bubble) {
+	var bubble2;
+	for(var i = 0; i < this.bubbleKeys.length; i++) {
+		bubble2 = this.bubbles[this.bubbleKeys[i]];
+		if(gameFunctions.haveCollided(bubble, bubble2))
+			return false;
+	}
+	return true;
 };
 
 Engine.prototype.updateState = function() {
@@ -53,6 +79,7 @@ Engine.prototype.updateState = function() {
 				tmp = gameFunctions.getCollisionResult(bubble, bubble2);
 				if(tmp.winner) {
 					tmp.winner.radius = gameFunctions.getPostGobbleRadius(bubble, bubble2);
+					//	need code to handle post-collision slowdown of winner!
 					delete this.bubbles[tmp.loser.name];
 					bubbleLost = true;
 				}

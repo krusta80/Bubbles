@@ -6,7 +6,7 @@
 
 var gameFunctions = {
 
-	STARTING_RADIUS: 1,							//	size of a newly-spawned bubble
+	STARTING_RADIUS: 1,								//	size of a newly-spawned bubble
 	STARTING_MAX_SPEED: this.STARTING_RADIUS*5,		//	max speed of a newly-spawned bubble
 	
 	haveCollided: function(bubble1, bubble2) {
@@ -44,7 +44,7 @@ var gameFunctions = {
 
 		return {
 			dx: playerSpeed * mouseDx / mouseDistance,
-			dy: playerSpeed * mouseDx / mouseDistance
+			dy: playerSpeed * mouseDy / mouseDistance
 		};
 	},
 
@@ -58,7 +58,7 @@ var gameFunctions = {
 
 	getSpeedFraction: function(distanceFromCenter) {
 		//	assuming distanceFromCenter measured in STARTING_RADIUS increments
-		var pers = [0, .1, .4, .8, 1];
+		var pers = [0, 0, .2, .4, 1];
 		var floored = Math.floor(distanceFromCenter);
 		if(floored > 4)
 			floored = 4;

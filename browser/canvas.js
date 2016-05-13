@@ -1,48 +1,28 @@
-// key events
+/**  CANVAS-RELATED VARIABLES **/
+var CANVAS;
+var CONTEXT;
+var WIDTH;
+var HEIGHT;
+var CENTER;
+var RADIUS_WIDTH = 25;
+var FPS = 30;
 
-var KEY_LEFT = 37;
-var KEY_UP = 38;
-var KEY_RIGHT = 39;
-var KEY_DOWN = 40;
-var WIDTH = 900;
-var HEIGHT = 900;
-var STATE = {
-    x: 150,
-    y: 150,
-    radius: 70
-};
-var MAX_SPEED = 10;
-var canvas;
-var context;
-var bubbles;
+/**  GAME-RELATED VARIABLES **/
+var hero;                   //  player's bubble
+var bubbles = {};           //  ALL bubbles
+var bubbleKeys = [];
+var engine; 
 
 // takes in a position x and y at its center and radius to create a circle
 function drawCircle(centerX, centerY, radius, color) {
-    context.beginPath();
-    context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-    context.fillStyle = color;
-    context.fill();
-    context.lineWidth = 5;
-    //context.strokeStyle = '#003300';
-    context.strokeStyle = color;
-    context.stroke();
-
-}
-
-function move(direction) {
-    context.clearRect(STATE.x-STATE.radius-10,STATE.y-STATE.radius-10,STATE.x+STATE.radius+10,STATE.y+STATE.radius+10);
-    if (direction === 'up') {
-        drawCircle(STATE.x, STATE.y-=increment, STATE.radius, 'green');
-    }
-    if (direction === 'down') {
-        drawCircle(STATE.x, STATE.y+=increment, STATE.radius, 'green');
-    }
-    if (direction === 'left') {
-        drawCircle(STATE.x-=increment, STATE.y, STATE.radius, 'green');
-    }
-    if (direction === 'right') {
-        drawCircle(STATE.x+=increment, STATE.y, STATE.radius, 'green');
-    }
+    CONTEXT.beginPath();
+    CONTEXT.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+    CONTEXT.fillStyle = color;
+    CONTEXT.fill();
+    CONTEXT.lineWidth = 5;
+    //CONTEXT.strokeStyle = '#003300';
+    CONTEXT.strokeStyle = color;
+    CONTEXT.stroke();
 }
 
 var getRandomColor = function() {
@@ -52,72 +32,127 @@ var getRandomColor = function() {
     return '#'+RR+GG+BB;
 };
 
-var autoMove = function(bubble) {
-    //console.log("moving...");
+var renderBubble = function(bubble) {
     drawCircle(bubble.x, bubble.y, bubble.radius, bubble.color);
 };
 
-var generateBubble = function(name) {
-    var radius = Math.floor(Math.random()*30+10);
+var renderHero = function() {
+    //  hero is always at the center of the canvas
+    drawCircle(CENTER.x, CENTER.y, hero.radius, hero.color);
+};
+
+var renderBubbles = function() {
+    //  This function must find all bubbles within canvas visual
+    //  and transform their coordinates appropriately
+    var canvasEdges = {
+        left: hero.x - CENTER.x,
+        top: hero.y - CENTER.y,
+        right: hero.x + CENTER.x,
+        bottom: hero.y + CENTER.y
+    };
+
+    bubbleKeys.forEach(function(key) {
+        var bubble = bubbles[key];
+        if(bubble.name != '-1') {
+            if(gameFunctions.getDistance(hero, bubble) 
+                <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT))
+                renderBubble(bubble); 
+        }
+    });
+};
+
+var renderBubble = function(bubble) {
+    drawCircle(bubble.x - hero.x + CENTER.x, bubble.y - hero.y + CENTER.y, bubble.radius, bubble.color);
+};
+
+var generateBubble = function(properties) {
+    if(properties.name)
+        var name = properties.name;
+    if(properties.color)
+        var color = properties.color;
+    else
+        var color = getRandomColor();
+    if(properties.dx === undefined)
+        properties.dx = 0;
+    if(properties.dy === undefined)
+        properties.dy = 0;
+    
     return {
         name: name,
-        x: Math.floor(Math.random()*WIDTH),
-        y: Math.floor(Math.random()*HEIGHT),
-        radius: radius,
+        x: 0,
+        y: 0,
+        radius: gameFunctions.STARTING_RADIUS,
         vector: {
-            dx: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
-            dy: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1)
+            //dx: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
+            //dy: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1)
+            dx: properties.dx,
+            dy: properties.dx,
         },
-        color: getRandomColor()
+        color: color
     };
-}
+};
 
 var seedBubbles = function(reps) {
-    var ret = {};
+    var ret = [];
     for(var i = 0; i < reps; i++) {
-        var bubble = generateBubble(i);
-        console.log(bubble);
-        ret[bubble.name] = bubble;
+        var bubble = generateBubble({name: i+1});
+        ret.push(bubble);
     }
     return ret;
 };
 
+var getMouseCoords = function(e) {
+    //  client will eventually be "transmitting" these coordinates to the server
+    updateHeroVector(e.clientX-CENTER.x, e.clientY-CENTER.y);
+};
+
+var updateHeroVector = function(mouseDx, mouseDy) {
+    hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
+};
+
+var initializeCanvas = function() {
+    CANVAS = document.getElementById('canvas');
+    WIDTH = CANVAS.width;
+    HEIGHT = CANVAS.height;
+    CENTER = {
+        x: WIDTH/2,
+        y: HEIGHT/2
+    };
+    CONTEXT = CANVAS.getContext('2d');
+};
+
+var initializeHero = function() {
+    //  for now, we just generate another random bubble
+    hero = generateBubble({name: -1, color: 'green', x: 50, y: 50});
+    engine.addBubbles([hero]);
+    bubbles[hero.name] = hero;
+};
+
+var initializeEnemies = function(enemyCount) {
+    engine.addBubbles(seedBubbles(enemyCount));
+    bubbles = engine.bubbles;
+    bubbleKeys = engine.bubbleKeys;
+};
+
+var initializeEngine = function(gridWidth, gridHeight) {
+    //  normally this will be run on and controlled by the server
+    engine = new Engine(-1, RADIUS_WIDTH, gridWidth, gridHeight, true);
+};
+
 window.onload = function() {
-    //drawCircle(STATE.x,STATE.y,STATE.radius);
-    // bind some key listeners here
-   canvas = document.getElementById('canvas');
-    context = canvas.getContext('2d');
+    initializeEngine(20000, 20000);
+    initializeCanvas();
+    initializeHero();
+    initializeEnemies(250);
+    renderBubbles();
 
-    window.addEventListener('keydown', function(e) {
-        var key = e.which || e.keyCode;
-        if (key === KEY_UP) {
-            console.log('key up!');
-            move('up');
-        } 
-        if (key === KEY_DOWN) {
-           console.log('key down!'); 
-           move('down');
-        }
-        if (key === KEY_RIGHT) {
-            console.log('key right!');
-            move('right');
-        } 
-        if (key === KEY_LEFT) {
-            console.log('key left!');
-            move('left');
-        }
-    }, false)
-
-    bubbles = seedBubbles(30);
-
-    var engine = new Engine(-1, WIDTH, HEIGHT, bubbles, true);
     window.setInterval(function() {
-        context.clearRect(0,0,WIDTH,HEIGHT);
+        CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
         engine.updateState();
             
         Object.keys(bubbles).forEach(function(key) {
-            autoMove(bubbles[key]);
+            renderBubble(bubbles[key]);
         });
-    }.bind(this), 35);
+    }.bind(this), Math.floor(1000/FPS));
 }
 
