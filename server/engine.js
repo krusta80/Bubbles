@@ -20,9 +20,9 @@ Engine.prototype.addBubbles = function(newBubbles) {
 	}.bind(this));
 };
 
-Engine.prototype.removeBubble = function(name) {
-	if(this.bubbles[name])
-		this.bubbles[name].markedForRemoval = true;
+Engine.prototype.removeBubble = function(id) {
+	if(this.bubbles[id])
+		this.bubbles[id].markedForRemoval = true;
 };
 
 Engine.prototype._spawnBubble = function(newBubble) {
@@ -30,8 +30,8 @@ Engine.prototype._spawnBubble = function(newBubble) {
 		newBubble.x = Math.floor(Math.random()*this.width);
 		newBubble.y = Math.floor(Math.random()*this.height);
 	}
-	this.bubbles[newBubble.name] = newBubble;
-	this.bubbleKeys.push(newBubble.name);
+	this.bubbles[newBubble.id] = newBubble;
+	this.bubbleKeys.push(newBubble.id);
 };
 
 Engine.prototype.isClear = function(bubble) {
@@ -55,7 +55,7 @@ Engine.prototype.updateState = function() {
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
 		
-		//console.log(bubble.name, bubble.x, bubble.y);
+		//console.log(bubble.id, bubble.x, bubble.y);
 		if(bubble.vector && !this.bouncyWalls) {
 			tmp = bubble.x + bubble.vector.dx;
 			if(tmp >= 0 && tmp < this.width)
@@ -84,7 +84,7 @@ Engine.prototype.updateState = function() {
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
 		if(bubble.markedForRemoval) {
-			marked.push(bubble.name);
+			marked.push(bubble.id);
 			continue;
 		}
 
@@ -101,16 +101,16 @@ Engine.prototype.updateState = function() {
 						dy: tmp.winner.vector.dy * newMaxSpeed / oldMaxSpeed
 					};
 					//	need code to handle post-collision slowdown of winner!
-					delete this.bubbles[tmp.loser.name];
+					delete this.bubbles[tmp.loser.id];
 					bubbleLost = true;
 				}
 			}
 		}
 	}
 
-	marked.forEach(function(name) {
+	marked.forEach(function(id) {
 		bubbleLost = true;
-		delete this.bubbles[name];
+		delete this.bubbles[id];
 	})
 
 	//	reset bubbleKeys
