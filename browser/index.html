@@ -2,14 +2,15 @@
 <html>
 <head>
   <title>bubbles test ground</title>
-
-  <script type="text/javascript" src="./index.js"></script>
+  <script type="text/javascript" src="./socket.io.js"></script>
+  <script type="text/javascript" src="./functions.js"></script>
+  <script type="text/javascript" src="./engine.js"></script>
   <script type="text/javascript" src="./canvas.js"></script>
 </head>
 <body>
   
 
-  <canvas id="canvas" width="900" height="900"></canvas>
+  <canvas id="canvas" width="900" height="700" onmousemove="getMouseCoords(event)"></canvas>
 </body>
 
 <style type="text/css">

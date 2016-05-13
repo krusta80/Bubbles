@@ -1,54 +1,14 @@
 
-module.exports = {
+/**
+	The following functions are used to identify and handle
+	bubble collisions.
+*/
 
-	STARTING_RADIUS: 25,				//	size of a newly-spawned bubble
-	STARTING_MAX_SPEED: 100,			//	max speed of a newly-spawned bubble
+var gameFunctions = {
+
+	STARTING_RADIUS: 1,								//	size of a newly-spawned bubble
+	STARTING_MAX_SPEED: this.STARTING_RADIUS*5,		//	max speed of a newly-spawned bubble
 	
-	/**
-		The following functions are used to generate and maintain
-		bubbles.
-	*/
-
-	generateBubble: function(properties) {
-	    if(properties.color)
-	        var color = properties.color;
-	    else
-	        var color = this.getRandomColor();
-	    if(properties.dx === undefined)
-	        properties.dx = 0;
-	    if(properties.dy === undefined)
-	        properties.dy = 0;
-	    if(properties.radius)
-	        var radius = properties.radius;
-	    else
-	        var radius = this.STARTING_RADIUS;
-
-	    return {
-	        id: properties.id,
-	        name: properties.name,
-	        x: 1000,
-	        y: 1000,
-	        radius: radius,
-	        vector: {
-	            dx: properties.dx,
-	            dy: properties.dx,
-	        },
-	        color: color
-	    };
-	},
-
-	getRandomColor: function() {
-	    var RR = Math.floor(Math.random()*256).toString(16);
-	    var GG = Math.floor(Math.random()*256).toString(16);
-	    var BB = Math.floor(Math.random()*256).toString(16);
-	    return '#'+RR+GG+BB;
-	},
-
-	/**
-		The following functions are used to identify and handle
-		bubble collisions.
-	*/
-
 	haveCollided: function(bubble1, bubble2) {
 		return this.getDistance(bubble1, bubble2) < bubble1.radius + bubble2.radius;
 	},
