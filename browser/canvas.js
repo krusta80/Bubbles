@@ -6,6 +6,7 @@ var HEIGHT;
 var CENTER;
 var RADIUS_WIDTH = 25;
 var FPS = 30;
+var INTERVAL = 1000/FPS;
 
 /**  GAME-RELATED VARIABLES **/
 var hero;                   //  player's bubble
@@ -177,13 +178,27 @@ window.onload = function() {
     initializeHero();
     initializeEnemies(5000);
     var frame = 0;
+    var now;
+    var then = Date.now();
     
-    window.setInterval(function() {
-        CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        renderGridLines();
-        engine.updateState();
-        renderBubbles();
-        frame++;
-    }.bind(this), Math.floor(1000/FPS));
+
+    var run = function() {
+        requestAnimationFrame(run);
+        now = Date.now();
+        delta = now - then;
+
+        if (delta > INTERVAL) {
+            then = now - (delta % INTERVAL);
+            CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
+            renderGridLines();
+            engine.updateState();
+            renderBubbles();
+            frame++;
+        }
+    }
+    run();
+
 }
+
+
 
