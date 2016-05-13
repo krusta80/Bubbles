@@ -111,7 +111,7 @@ Engine.prototype.updateState = function() {
 	marked.forEach(function(id) {
 		bubbleLost = true;
 		delete this.bubbles[id];
-	})
+	}.bind(this))
 
 	//	reset bubbleKeys
 	if(bubbleLost)

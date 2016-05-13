@@ -16,14 +16,17 @@ const GRID_HEIGHT = 20000;
 
 var engine = new Engine(-1, RADIUS_WIDTH, GRID_WIDTH, GRID_HEIGHT, false);
 var bubbles = engine.bubbles;
+var playerCount = 0;
 
 console.log("Socket.io listening on port", port);
 
 io.on('connection', function (socket) {
-	console.log("	---> NEW CONNECTION DETECTED");
+	console.log("	--->", socket.handshake.query.name, "has joined the game!");
+	console.log("	   >", socket.id);
 	var newBubble = gameFunctions.generateBubble({id: socket.id, name: socket.handshake.query.name});
 	engine.addBubbles([newBubble]);
-	
+	console.log("There are now", ++playerCount, "players.");
+
 	socket.emit('welcome', {
 		FPS: FPS,
 		RADIUS_WIDTH: RADIUS_WIDTH,
@@ -32,8 +35,11 @@ io.on('connection', function (socket) {
 		hero: newBubble
 	});
 
-	socket.on('disconnect', function(socket) {
+	socket.on('disconnect', function() {
+		console.log("	--->", bubbles[socket.id].name, "has left the game!");
+		console.log("	   >", socket.id);
 		engine.removeBubble(socket.id);
+		console.log("There are now", --playerCount, "players.");
 	});
 
 	socket.on('player.move', function(move) {
