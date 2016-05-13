@@ -1,14 +1,53 @@
 
-/**
-	The following functions are used to identify and handle
-	bubble collisions.
-*/
+var module.exports = {
 
-module.exports = {
-
-	STARTING_RADIUS: 1,							//	size of a newly-spawned bubble
-	STARTING_MAX_SPEED: this.STARTING_RADIUS*5,		//	max speed of a newly-spawned bubble
+	STARTING_RADIUS: 25,				//	size of a newly-spawned bubble
+	STARTING_MAX_SPEED: 100,			//	max speed of a newly-spawned bubble
 	
+	/**
+		The following functions are used to generate and maintain
+		bubbles.
+	*/
+
+	var generateBubble = function(properties) {
+	    if(properties.color)
+	        var color = properties.color;
+	    else
+	        var color = getRandomColor();
+	    if(properties.dx === undefined)
+	        properties.dx = 0;
+	    if(properties.dy === undefined)
+	        properties.dy = 0;
+	    if(properties.radius)
+	        var radius = properties.radius;
+	    else
+	        var radius = this.STARTING_RADIUS;
+
+	    return {
+	        name: properties.name,
+	        x: 1000,
+	        y: 1000,
+	        radius: radius,
+	        vector: {
+	            dx: properties.dx,
+	            dy: properties.dx,
+	        },
+	        color: color
+	    };
+	},
+
+	var getRandomColor = function() {
+	    var RR = Math.floor(Math.random()*256).toString(16);
+	    var GG = Math.floor(Math.random()*256).toString(16);
+	    var BB = Math.floor(Math.random()*256).toString(16);
+	    return '#'+RR+GG+BB;
+	},
+
+	/**
+		The following functions are used to identify and handle
+		bubble collisions.
+	*/
+
 	haveCollided: function(bubble1, bubble2) {
 		return this.getDistance(bubble1, bubble2) < bubble1.radius + bubble2.radius;
 	},
@@ -44,7 +83,7 @@ module.exports = {
 
 		return {
 			dx: playerSpeed * mouseDx / mouseDistance,
-			dy: playerSpeed * mouseDx / mouseDistance
+			dy: playerSpeed * mouseDy / mouseDistance
 		};
 	},
 
@@ -57,8 +96,8 @@ module.exports = {
 	},
 
 	getSpeedFraction: function(distanceFromCenter) {
-		//	assuming distanceFromCenter measured in STARTING_RADIUS increments
-		var pers = [0, .1, .4, .8, 1];
+		distanceFromCenter /= this.STARTING_RADIUS;
+		var pers = [0, 0, .2, .4, 1];
 		var floored = Math.floor(distanceFromCenter);
 		if(floored > 4)
 			floored = 4;
