@@ -182,21 +182,23 @@ window.onload = function() {
     var then = Date.now();
     
 
-    var run = function() {
-        requestAnimationFrame(run);
-        now = Date.now();
-        delta = now - then;
 
-        if (delta > INTERVAL) {
-            then = now - (delta % INTERVAL);
-            CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-            renderGridLines();
-            engine.updateState();
-            renderBubbles();
-            frame++;
-        }
-    }
-    run();
+    
+    // var run = function() {
+    //     requestAnimationFrame(run);
+    //     now = Date.now();
+    //     delta = now - then;
+
+    //     if (delta > INTERVAL) {
+    //         then = now - (delta % INTERVAL);
+    //         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
+    //         renderGridLines();
+    //         engine.updateState();
+    //         renderBubbles();
+    //         frame++;
+    //     }
+    // }
+    // run();
 
 }
 

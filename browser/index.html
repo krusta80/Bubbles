@@ -6,11 +6,31 @@
   <script type="text/javascript" src="./functions.js"></script>
   <script type="text/javascript" src="./engine.js"></script>
   <script type="text/javascript" src="./canvas.js"></script>
+  <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
+  <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
 </head>
 <body>
   
-
+  
   <canvas id="canvas" width="900" height="700" onmousemove="getMouseCoords(event)"></canvas>
+
+  <div id="popup" class="wrapper">
+    <div class="container">
+      <div class="innercontainer center-block">
+        <form onSubmit="initialize()">
+          <h2>BUBBLES!</h2>
+          
+          <div class="form-group">
+            <label for="name">Enter a name to start playing!</label>
+            <input class="form-control" placeholder="name" id="name"></input>  
+          </div>
+
+          <button type="submit" class="btn btn-default">START</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
 
 <style type="text/css">
