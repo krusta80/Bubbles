@@ -1,4 +1,4 @@
-var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls) {
+var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls, clientSide) {
 	gameFunctions.STARTING_RADIUS = radiusLength;
 	gameFunctions.STARTING_MAX_SPEED = 4*radiusLength;
 	this.FPS = framesPerSecond;
@@ -9,6 +9,7 @@ var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls)
 	this.pellets = {};
 	this.frame = 0;
 	this.bouncyWalls = bouncyWalls;
+	this.clientSide = clientSide;
 };
 
 Engine.prototype.addBubbles = function(newBubbles) {
@@ -46,6 +47,7 @@ Engine.prototype.updateState = function() {
 	//	first we update the positions 						O(n)
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
+		
 		//console.log(bubble.name, bubble.x, bubble.y);
 		if(bubble.vector && !this.bouncyWalls) {
 			tmp = bubble.x + bubble.vector.dx;
@@ -73,6 +75,8 @@ Engine.prototype.updateState = function() {
 	//	next we check for collisions 						O(n^2)
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
+		if(this.clientSide && !inRange(bubble))
+			continue;
 		for(var j = i+1; j < this.bubbleKeys.length; j++) {
 			bubble2 = this.bubbles[this.bubbleKeys[j]];
 			if(bubble && bubble2 && gameFunctions.haveCollided(bubble, bubble2)) {

@@ -56,7 +56,7 @@ var renderBubbles = function() {
 
     bubbleKeys.forEach(function(key) {
         var bubble = bubbles[key];
-        if(gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT))
+        if(inRange(bubble))
             renderBubble(bubble); 
     });
 };
@@ -125,6 +125,11 @@ var initializeCanvas = function() {
     CONTEXT = CANVAS.getContext('2d');
 };
 
+var inRange = function(bubble) {
+    //  This is run on client side only from within the local engine
+    return gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
+};
+
 var renderGridLines = function() {
     var cellSide = RADIUS_WIDTH * 3;    
 
@@ -163,14 +168,14 @@ var initializeEnemies = function(enemyCount) {
 
 var initializeEngine = function(gridWidth, gridHeight) {
     //  normally this will be run on and controlled by the server
-    engine = new Engine(-1, RADIUS_WIDTH, gridWidth, gridHeight, true);
+    engine = new Engine(-1, RADIUS_WIDTH, gridWidth, gridHeight, true, true);
 };
 
 window.onload = function() {
     initializeEngine(20000, 20000);
     initializeCanvas();
     initializeHero();
-    initializeEnemies(250);
+    initializeEnemies(5000);
     var frame = 0;
     
     window.setInterval(function() {
