@@ -63,7 +63,7 @@ Engine.prototype.updateState = function() {
 			tmp = bubble.y + bubble.vector.dy;
 			if(tmp >= 0 && tmp < this.height)
 				bubble.y = tmp;
-			delete bubble.vector;
+			//bubble.vector;
 		}
 		else {
 			tmp = bubble.x + bubble.vector.dx;

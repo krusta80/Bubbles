@@ -14,7 +14,7 @@ const RADIUS_WIDTH = gameFunctions.STARTING_RADIUS;
 const GRID_WIDTH = 20000;
 const GRID_HEIGHT = 20000;
 
-var engine = new Engine(-1, RADIUS_WIDTH, GRID_WIDTH, GRID_HEIGHT, true);
+var engine = new Engine(-1, RADIUS_WIDTH, GRID_WIDTH, GRID_HEIGHT, false);
 var bubbles = engine.bubbles;
 
 console.log("Socket.io listening on port", port);
@@ -38,8 +38,11 @@ io.on('connection', function (socket) {
 
 	socket.on('player.move', function(move) {
 		//console.log("Move request:", move);
-		if(bubbles[move.id] && !isNaN(move.dx) && !isNaN(move.dy))
-			bubbles[move.id].vector = gameFunctions.getPlayerVector(bubbles[move.id], move.dx, move.dy);
+		if(bubbles[move.id] && !isNaN(move.dx) && !isNaN(move.dy)) {
+			var newVector = gameFunctions.getPlayerVector(bubbles[move.id], move.dx, move.dy);
+			bubbles[move.id].vector.dx = newVector.dx;
+			bubbles[move.id].vector.dy = newVector.dy;
+		}
   	});
 });
 
