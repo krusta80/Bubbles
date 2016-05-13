@@ -121,6 +121,8 @@ var updateHeroVector = function(mouseDx, mouseDy) {
 
 var initializeCanvas = function() {
     CANVAS = document.getElementById('canvas');
+    CANVAS.width = screen.width*.95;
+    CANVAS.height = screen.height*.9;
     WIDTH = CANVAS.width;
     HEIGHT = CANVAS.height;
     CENTER = {
@@ -136,7 +138,7 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function() {
-    var cellSide = RADIUS_WIDTH * 3;    
+    var cellSide = RADIUS_WIDTH * 2;    
 
     var leftEdge = hero.x - CENTER.x;
     var topEdge = hero.y - CENTER.y;
