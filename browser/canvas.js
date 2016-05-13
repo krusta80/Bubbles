@@ -4,10 +4,13 @@ var CONTEXT;
 var WIDTH;
 var HEIGHT;
 var CENTER;
-var RADIUS_WIDTH = 25;
-var FPS = 30;
+var RADIUS_WIDTH;
+var GRID_WIDTH;
+var GRID_HEIGHT;
+var FPS;
 
 /**  GAME-RELATED VARIABLES **/
+var socket;                 //  socket.io connection to server
 var hero;                   //  player's bubble
 var bubbles = {};           //  ALL bubbles
 var bubbleKeys = [];
@@ -51,8 +54,7 @@ var renderBubbles = function() {
         bottom: hero.y + CENTER.y
     };
 
-    bubbles = engine.bubbles;
-    bubbleKeys = engine.bubbleKeys;
+    bubbleKeys = Object.keys(bubbles);
 
     bubbleKeys.forEach(function(key) {
         var bubble = bubbles[key];
@@ -106,12 +108,12 @@ var seedBubbles = function(reps) {
 };
 
 var getMouseCoords = function(e) {
-    //  client will eventually be "transmitting" these coordinates to the server
     updateHeroVector(e.clientX-CENTER.x, e.clientY-CENTER.y);
 };
 
 var updateHeroVector = function(mouseDx, mouseDy) {
-    hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
+    socket.emit('player.move', {id: hero.id, dx: mouseDx, dy: mouseDy});
+    //hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
 };
 
 var initializeCanvas = function() {
@@ -153,10 +155,9 @@ var drawGridLine = function(x1, y1, x2, y2) {
     CONTEXT.stroke();
 };
 
-var initializeHero = function() {
+var initializeHero = function(serverHero) {
     //  for now, we just generate another random bubble
-    hero = generateBubble({name: -1, color: 'green', x: 50, y: 50, radius: gameFunctions.STARTING_RADIUS+1});   //  cheating to see gobble effect
-    engine.addBubbles([hero]);
+    hero = serverHero;
     bubbles[hero.name] = hero;
 };
 
@@ -172,18 +173,29 @@ var initializeEngine = function(gridWidth, gridHeight) {
 };
 
 window.onload = function() {
-    initializeEngine(20000, 20000);
-    initializeCanvas();
-    initializeHero();
-    initializeEnemies(5000);
-    var frame = 0;
-    
-    window.setInterval(function() {
+    socket = io('http://pandora.dyndns.biz:1337', {query: "name=-1"});
+
+    socket.on('welcome', function(vars) {
+        console.log("Welcome package:", vars);
+        RADIUS_WIDTH = vars.RADIUS_WIDTH;
+        GRID_WIDTH = vars.GRID_WIDTH;
+        GRID_HEIGHT = vars.GRID_HEIGHT;
+        FPS = vars.FPS;
+        //initializeEngine();
+        initializeCanvas();
+        initializeHero(vars.hero);
+        //initializeEnemies(5000);
+        var frame = 0;
+    });
+
+    socket.on('state.update', function(serverBubbles) {
+        bubbles = serverBubbles;
+        hero = bubbles[hero.id];
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
         renderGridLines();
-        engine.updateState();
+        //engine.updateState();
         renderBubbles();
-        frame++;
-    }.bind(this), Math.floor(1000/FPS));
-}
+        //frame++;
+    });
+};
 
