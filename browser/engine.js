@@ -1,6 +1,6 @@
 var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls) {
 	gameFunctions.STARTING_RADIUS = radiusLength;
-	gameFunctions.STARTING_MAX_SPEED = 5*radiusLength;
+	gameFunctions.STARTING_MAX_SPEED = 4*radiusLength;
 	this.FPS = framesPerSecond;
 	this.width = width;
 	this.height = height;

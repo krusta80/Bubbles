@@ -53,11 +53,8 @@ var renderBubbles = function() {
 
     bubbleKeys.forEach(function(key) {
         var bubble = bubbles[key];
-        if(bubble.name != '-1') {
-            if(gameFunctions.getDistance(hero, bubble) 
-                <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT))
-                renderBubble(bubble); 
-        }
+        if(gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT))
+            renderBubble(bubble); 
     });
 };
 
@@ -121,6 +118,30 @@ var initializeCanvas = function() {
     CONTEXT = CANVAS.getContext('2d');
 };
 
+var renderGridLines = function() {
+    var cellSide = RADIUS_WIDTH * 3;    
+
+    var leftEdge = hero.x - CENTER.x;
+    var topEdge = hero.y - CENTER.y;
+    var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
+    var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
+
+    for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
+        drawGridLine(x, 0, x, HEIGHT);
+    for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
+        drawGridLine(0, y, WIDTH, y);
+};
+
+var drawGridLine = function(x1, y1, x2, y2) {
+    console.log("drawing line...");
+    CONTEXT.lineWidth = 1;
+    CONTEXT.beginPath();
+    CONTEXT.moveTo(x1,y1);
+    CONTEXT.lineTo(x2,y2);
+    CONTEXT.strokeStyle = '#CCCCCC';
+    CONTEXT.stroke();
+};
+
 var initializeHero = function() {
     //  for now, we just generate another random bubble
     hero = generateBubble({name: -1, color: 'green', x: 50, y: 50});
@@ -144,15 +165,12 @@ window.onload = function() {
     initializeCanvas();
     initializeHero();
     initializeEnemies(250);
-    renderBubbles();
-
+    
     window.setInterval(function() {
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
+        renderGridLines();
         engine.updateState();
-            
-        Object.keys(bubbles).forEach(function(key) {
-            renderBubble(bubbles[key]);
-        });
+        renderBubbles();
     }.bind(this), Math.floor(1000/FPS));
 }
 

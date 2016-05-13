@@ -57,7 +57,7 @@ var gameFunctions = {
 	},
 
 	getSpeedFraction: function(distanceFromCenter) {
-		//	assuming distanceFromCenter measured in STARTING_RADIUS increments
+		distanceFromCenter /= this.STARTING_RADIUS;
 		var pers = [0, 0, .2, .4, 1];
 		var floored = Math.floor(distanceFromCenter);
 		if(floored > 4)
