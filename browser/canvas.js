@@ -51,6 +51,9 @@ var renderBubbles = function() {
         bottom: hero.y + CENTER.y
     };
 
+    bubbles = engine.bubbles;
+    bubbleKeys = engine.bubbleKeys;
+
     bubbleKeys.forEach(function(key) {
         var bubble = bubbles[key];
         if(gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT))
@@ -73,12 +76,16 @@ var generateBubble = function(properties) {
         properties.dx = 0;
     if(properties.dy === undefined)
         properties.dy = 0;
-    
+    if(properties.radius)
+        var radius = properties.radius;
+    else
+        var radius = gameFunctions.STARTING_RADIUS;
+
     return {
         name: name,
         x: 0,
         y: 0,
-        radius: gameFunctions.STARTING_RADIUS,
+        radius: radius,
         vector: {
             //dx: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1),
             //dy: MAX_SPEED/Math.sqrt(radius)*(Math.floor(Math.random()*3)-1)
@@ -133,7 +140,6 @@ var renderGridLines = function() {
 };
 
 var drawGridLine = function(x1, y1, x2, y2) {
-    console.log("drawing line...");
     CONTEXT.lineWidth = 1;
     CONTEXT.beginPath();
     CONTEXT.moveTo(x1,y1);
@@ -144,7 +150,7 @@ var drawGridLine = function(x1, y1, x2, y2) {
 
 var initializeHero = function() {
     //  for now, we just generate another random bubble
-    hero = generateBubble({name: -1, color: 'green', x: 50, y: 50});
+    hero = generateBubble({name: -1, color: 'green', x: 50, y: 50, radius: gameFunctions.STARTING_RADIUS+1});   //  cheating to see gobble effect
     engine.addBubbles([hero]);
     bubbles[hero.name] = hero;
 };
