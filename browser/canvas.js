@@ -165,12 +165,14 @@ window.onload = function() {
     initializeCanvas();
     initializeHero();
     initializeEnemies(250);
+    var frame = 0;
     
     window.setInterval(function() {
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
         renderGridLines();
         engine.updateState();
         renderBubbles();
+        frame++;
     }.bind(this), Math.floor(1000/FPS));
 }
 
