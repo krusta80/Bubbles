@@ -25,6 +25,7 @@ Engine.prototype._spawnBubble = function(newBubble) {
 		newBubble.y = Math.floor(Math.random()*this.height);
 	}
 	this.bubbles[newBubble.name] = newBubble;
+	this.bubbleKeys.push(newBubble.name);
 };
 
 Engine.prototype.isClear = function(bubble) {
