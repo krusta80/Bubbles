@@ -8,6 +8,9 @@ var RADIUS_WIDTH;
 var GRID_WIDTH;
 var GRID_HEIGHT;
 var FPS;
+var INTERVAL;
+var now;
+var then = Date.now();
 
 /**  GAME-RELATED VARIABLES **/
 var socket;                 //  socket.io connection to server
@@ -172,6 +175,21 @@ var initializeEngine = function(gridWidth, gridHeight) {
     engine = new Engine(-1, RADIUS_WIDTH, gridWidth, gridHeight, true, true);
 };
 
+var run = function() {
+    requestAnimationFrame(run);
+    now = Date.now();
+    delta = now - then;
+
+    if (delta > INTERVAL) {
+        then = now - (delta % INTERVAL);
+        CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
+        renderGridLines();
+        //engine.updateState();
+        renderBubbles();
+        //frame++;
+    }
+};
+
 window.onload = function() {
     socket = io('http://pandora.dyndns.biz:1337', {query: "name=-1"});
 
@@ -181,21 +199,19 @@ window.onload = function() {
         GRID_WIDTH = vars.GRID_WIDTH;
         GRID_HEIGHT = vars.GRID_HEIGHT;
         FPS = vars.FPS;
+        INTERVAL = 1000/FPS;
         //initializeEngine();
         initializeCanvas();
         initializeHero(vars.hero);
         //initializeEnemies(5000);
         var frame = 0;
+        run();
     });
 
     socket.on('state.update', function(serverBubbles) {
         bubbles = serverBubbles;
         hero = bubbles[hero.id];
-        CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        renderGridLines();
-        //engine.updateState();
-        renderBubbles();
-        //frame++;
     });
 };
+
 
