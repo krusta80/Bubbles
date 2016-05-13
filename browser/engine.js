@@ -82,7 +82,13 @@ Engine.prototype.updateState = function() {
 			if(bubble && bubble2 && gameFunctions.haveCollided(bubble, bubble2)) {
 				tmp = gameFunctions.getCollisionResult(bubble, bubble2);
 				if(tmp.winner) {
+					var oldMaxSpeed = gameFunctions.getMaxSpeed(tmp.winner.radius);
 					tmp.winner.radius = gameFunctions.getPostGobbleRadius(bubble, bubble2);
+					var newMaxSpeed = gameFunctions.getMaxSpeed(tmp.winner.radius);
+					tmp.winner.vector = {
+						dx: tmp.winner.vector.dx * newMaxSpeed / oldMaxSpeed,
+						dy: tmp.winner.vector.dy * newMaxSpeed / oldMaxSpeed
+					};
 					//	need code to handle post-collision slowdown of winner!
 					delete this.bubbles[tmp.loser.name];
 					bubbleLost = true;
