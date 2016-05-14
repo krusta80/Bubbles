@@ -24,6 +24,7 @@ var pelletImage;
 var heroCoords = {};
 var startingOver = true;
 var pelletBoard;
+var leaderBoard;
 
 // takes in a position x and y at its center and radius to create a circle
 function drawCircle(centerX, centerY, radius, color, context, linewidth) {
@@ -80,6 +81,7 @@ function getRandomInt(min, max) {
 var renderHero = function() {
     //  hero is always at the center of the canvas
     drawCircle(CENTER.x, CENTER.y, hero.radius, hero.color);
+    CONTEXT.fillText(hero.name, CENTER.x-10, CENTER.y+2);
 };
 
 var renderBubbles = function() {
@@ -334,10 +336,10 @@ window.onload = function() {
     socket = io(host, {query: "name=-1"});
 
     socket.on('acknowledged', function(connection) {
-        setTimeout(function() {
-            socket.emit('iWannaPlay', {name: 'Test Player'});
-        }.bind(this), 5000);
-        console.log("Respawning in 5 seconds...");
+        // setTimeout(function() {
+        //     socket.emit('iWannaPlay', {name: 'Test Player'});
+        // }.bind(this), 5000);
+        // console.log("Respawning in 5 seconds...");
     });
 
     socket.on('welcome', function(vars) {
@@ -369,6 +371,23 @@ window.onload = function() {
                     }
                 }
         });
+    });
+
+    socket.on('leaderBoard', function(leaderboard) {
+      
+      // {name: bubble.name, id: bubble.id, score: bubble.score};
+      var template = ""
+
+      if (leaderboard.length === 0) {
+        template = "<div class='throne'>THE THRONE IS OPEN</div>";
+      } else {
+        for (var i = 0; i < leaderboard.length; i++) {    
+          template += "<tr><th>" + i+1 + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
+        }  
+      }
+      
+      $('.leaderboardBody').html(template);
+
     });
 
     run();  //  this used to be in the on welcome listener

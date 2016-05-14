@@ -7,9 +7,73 @@
   <script type="text/javascript" src="./functions.js"></script>
   <script type="text/javascript" src="./engine.js"></script>
   <script type="text/javascript" src="./canvas.js"></script>
+  <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
+  <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="./assets/js/start.js"></script>
 </head>
-<body align="center"> 
+<body align="center">
+  <div id="bubbles">
   <canvas id="canvas" onmousemove="getMouseCoords(event)"></canvas>
+  
+
+  <!-- popup stuff -->
+  <div id="popup" class="wrapper">
+    <div class="container">
+      <div class="innercontainer center-block">
+        <form id="iWannaPlay">
+          <h2>BUBBLES!</h2>
+          
+          <div class="form-group">
+            <label for="name">Enter a name to start playing!</label>
+            <input class="form-control" placeholder="name" id="name"></input>  
+            <div class="errorMsg bg-danger"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">START</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="leaderboard">
+    <div class="button btn btn-default">
+      <div class="glyphicon glyphicon-remove close-btn"></div>
+      <div class="glyphicon glyphicon-chevron-left open-btn"></div>
+    </div>
+    <div class="cont">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>NAME</th>
+            <th>SCORE</th>
+          </tr>
+        </thead>
+        <tbody class="leaderboardBody">
+          <tr>
+            <th>1</th>
+            <td>BUBBLICIOUS</td>
+            <td>150000</td>
+          </tr>
+          <tr>
+            <th>2</th>
+            <td>HOORAH</td>
+            <td>14000</td>
+          </tr>
+          <tr>
+            <th>3</th>
+            <td>obama</td>
+            <td>12000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+
 </body>
 
 <style type="text/css">
@@ -24,4 +88,6 @@
     padding: 0;
   }
 </style>
+
+
 </html>
