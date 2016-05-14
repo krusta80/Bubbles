@@ -324,6 +324,7 @@ var initializeVariables = function(vars) {
         FPS = vars.FPS;
         INTERVAL = 1000/FPS;
         pellets = vars.pellets;
+        panFactor = 1;
         
         //initializeEngine();
         initializeCanvas();
@@ -375,7 +376,7 @@ window.onload = function() {
         if(hero && bubbles[hero.id]) {
             startingOver = false;
             hero = bubbles[hero.id];
-            if(hero.radius && hero.radius > 3/4 * CENTER.X * panFactor)
+            if(hero.radius && hero.radius > 1/2 * CENTER.x * panFactor)
                 panFactor++;
             heroCoords = {x: hero.x, y: hero.y};
         }
