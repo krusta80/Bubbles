@@ -357,8 +357,8 @@ window.onload = function() {
         }
         
         //console.log("Eaten pellets:", stateVars.eatenPellets);
-        if(stateVars.eatenPellets.length > 0)
-            console.log("Eaten pellets received:", stateVars.eatenPellets);
+        // if(stateVars.eatenPellets.length > 0)
+        //     console.log("Eaten pellets received:", stateVars.eatenPellets);
         stateVars.eatenPellets.forEach(function(pellet) {
             var key = Math.ceil(pellet.x/RADIUS_WIDTH) + '-' + Math.ceil(pellet.y/RADIUS_WIDTH);
             if(pellets[key])

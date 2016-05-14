@@ -85,7 +85,6 @@ Engine.prototype.eatPellets = function(bubble) {
     			}
     var newMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
     if(eatenPellets.length > 0) {
-    	console.log("yum", eatenPellets.length);
     	bubble.vector = {
 			dx: bubble.vector.dx * newMaxSpeed / oldMaxSpeed,
 			dy: bubble.vector.dy * newMaxSpeed / oldMaxSpeed
