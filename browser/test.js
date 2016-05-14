@@ -13,7 +13,7 @@ function renderPelletPallete () {
   var radiusOfCircle = 10;
   for (var x = radiusOfCircle; x < cvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
     for (var y = radiusOfCircle; y < cvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
-      drawCircle(x,y,radiusOfCircle - 1.7, getRandomColor(), ctx);
+      drawCircle(x,y,radiusOfCircle - 3, getRandomColor(), ctx);
     }
   }
 

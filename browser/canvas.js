@@ -67,8 +67,8 @@ var renderPellet = function(pellet) {
     // var img = new Image();
     // img.src = image.data;
     // debugger;
-    CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
-    // CONTEXT.putImageData(image, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );    
+    // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
+    CONTEXT.putImageData(image, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );    
 };
 
 function getRandomInt(min, max) {
@@ -190,7 +190,7 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function(context) {
-    var cellSide = RADIUS_WIDTH * 2.5;    
+    var cellSide = RADIUS_WIDTH * 3;    
 
     var leftEdge = hero.x - CENTER.x;
     var topEdge = hero.y - CENTER.y;
@@ -228,14 +228,14 @@ var createOffScreenPelletBoard = function(pellet) {
   var radiusOfCircle = 10;
   for (var x = radiusOfCircle; x < offCvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
     for (var y = radiusOfCircle; y < offCvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
-      drawCircle(x,y,radiusOfCircle - 2, getRandomColor(), ctx, 0);
+      drawCircle(x,y,radiusOfCircle - 3, getRandomColor(), ctx, 0);
     }
   }
     pelletBoard = offCvs;
 }
 
 var drawGridLine = function(x1, y1, x2, y2, context) {
-    context.lineWidth = 1;
+    context.lineWidth = 2;
     context.beginPath();
     context.moveTo(x1,y1);
     context.lineTo(x2,y2);
@@ -291,7 +291,7 @@ var addPellet = function(pellet) {
     frame++;
 };
 
-var initializeVariables = function() {
+var initializeVariables = function(vars) {
     console.log("Welcome package:", vars);
         RADIUS_WIDTH = vars.RADIUS_WIDTH;
         GRID_WIDTH = vars.GRID_WIDTH;
