@@ -291,11 +291,8 @@ var addPellet = function(pellet) {
     frame++;
 };
 
-window.onload = function() {
-    socket = io('http://localhost:1337', {query: "name=-1"});
-
-    socket.on('welcome', function(vars) {
-        console.log("Welcome package:", vars);
+var initializeVariables = function() {
+    console.log("Welcome package:", vars);
         RADIUS_WIDTH = vars.RADIUS_WIDTH;
         GRID_WIDTH = vars.GRID_WIDTH;
         GRID_HEIGHT = vars.GRID_HEIGHT;
@@ -313,13 +310,35 @@ window.onload = function() {
         createOffScreenPelletBoard(pellet[0]);
 
         frame = 0;
-        run();
+};
+
+var startOver = function() {
+    //  clear out variables
+    socket.emit('iWannaPlay', {name: 'Test Player'});
+};
+
+window.onload = function() {
+    socket = io(host, {query: "name=-1"});
+
+    socket.on('acknowledged', function(connection) {
+        setTimeout(function() {
+            socket.emit('iWannaPlay', {name: 'Test Player'});
+        }.bind(this), 5000);
+        console.log("Respawning in 5 seconds...");
+    });
+
+    socket.on('welcome', function(vars) {
+        initializeVariables(vars);
     });
 
     socket.on('state.update', function(stateVars) {
+        if(!hero)
+            return;
         addPellet(stateVars.newPellet);
         bubbles = stateVars.bubbles;
         hero = bubbles[hero.id];
+        if(!hero)
+            startOver();
         stateVars.eatenPellets.forEach(function(pellet) {
             var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
             if(pellets[key])
@@ -331,6 +350,8 @@ window.onload = function() {
                 }
         });
     });
+
+    run();  //  this used to be in the on welcome listener
 };
 
 

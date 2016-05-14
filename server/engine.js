@@ -4,7 +4,7 @@ var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls,
 	gameFunctions.STARTING_RADIUS = radiusLength;
 	gameFunctions.STARTING_MAX_SPEED = 2*radiusLength;
 	this.FPS = framesPerSecond;
-	this.MAX_PELLETS = 100000;
+	this.MAX_PELLETS = 3000;
 	this.width = width;
 	this.height = height;
 	this.bubbles = {};
@@ -77,6 +77,7 @@ Engine.prototype.eatPellets = function(bubble) {
     				var pellet = this.pellets[j+'-'+i][p];
     				if(gameFunctions.haveCollided(bubble, pellet)) {
     					bubble.radius = gameFunctions.getPostGobbleRadius(bubble, pellet);
+    					bubble.score = bubble.radius*10;
     					this.pellets[j+'-'+i].splice(p,1); p--;
     					eatenPellets.push(pellet);
     					this.pelletCount--;
@@ -165,6 +166,7 @@ Engine.prototype.updateState = function(spawnPellet) {
 				if(tmp.winner) {
 					var oldMaxSpeed = gameFunctions.getMaxSpeed(tmp.winner.radius);
 					tmp.winner.radius = gameFunctions.getPostGobbleRadius(bubble, bubble2);
+					tmp.winner.score = 10*tmp.winner.radius;
 					var newMaxSpeed = gameFunctions.getMaxSpeed(tmp.winner.radius);
 					tmp.winner.vector = {
 						dx: tmp.winner.vector.dx * newMaxSpeed / oldMaxSpeed,

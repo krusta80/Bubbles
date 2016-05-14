@@ -26,6 +26,7 @@ module.exports = {
 	    return {
 	        id: properties.id,
 	        name: properties.name,
+	        score: radius*10,
 	        x: 1000,
 	        y: 1000,
 	        radius: radius,
