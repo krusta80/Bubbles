@@ -98,14 +98,9 @@ module.exports = {
 	},
 
 	getSpeedFraction: function(distanceFromCenter) {
-		distanceFromCenter /= this.STARTING_RADIUS;
-		var pers = [0, .3, 1, 1, 1];
-		var floored = Math.floor(distanceFromCenter);
-		if(floored > 4)
-			floored = 4;
-		return pers[floored];
+		var per = distanceFromCenter/(4*STARTING_RADIUS);
+		return Math.min(per, 1);
 	},
-
 
 	/**
 		The following functions are used to measure two objects'
