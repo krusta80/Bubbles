@@ -4,26 +4,40 @@ var CONTEXT;
 var WIDTH;
 var HEIGHT;
 var CENTER;
-var RADIUS_WIDTH = 25;
-var FPS = 30;
-var INTERVAL = 1000/FPS;
+var RADIUS_WIDTH;
+var GRID_WIDTH;
+var GRID_HEIGHT;
+var FPS;
+var INTERVAL;
+var frame;
+var now;
+var then = Date.now();
 
 /**  GAME-RELATED VARIABLES **/
+var socket;                 //  socket.io connection to server
 var hero;                   //  player's bubble
 var bubbles = {};           //  ALL bubbles
 var bubbleKeys = [];
+var pellets = {};
 var engine; 
+var pelletImage;
+var pelletBoard;
 
 // takes in a position x and y at its center and radius to create a circle
-function drawCircle(centerX, centerY, radius, color) {
-    CONTEXT.beginPath();
-    CONTEXT.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-    CONTEXT.fillStyle = color;
-    CONTEXT.fill();
-    CONTEXT.lineWidth = 5;
-    //CONTEXT.strokeStyle = '#003300';
-    CONTEXT.strokeStyle = color;
-    CONTEXT.stroke();
+function drawCircle(centerX, centerY, radius, color, context, linewidth) {
+    if(!context)
+        var context = CONTEXT;
+    if(!linewidth) {
+        linewidth = 5;
+    }
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+    context.fillStyle = color;
+    context.fill();
+    context.lineWidth = linewidth;
+    //context.strokeStyle = '#003300';
+    context.strokeStyle = color;
+    context.stroke();
 }
 
 var getRandomColor = function() {
@@ -33,9 +47,33 @@ var getRandomColor = function() {
     return '#'+RR+GG+BB;
 };
 
-var renderBubble = function(bubble) {
-    drawCircle(bubble.x, bubble.y, bubble.radius, bubble.color);
+var renderPellet = function(pellet) {
+    //  if(pelletImage) {
+    //     //console.log("pasting");
+    //     CONTEXT.putImageData(pelletImage, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius);
+    // }
+    //  else {
+    //     createOffscreenCircle(pellet);
+    //     drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
+    // }
+
+    if (!pellet.imgX || !pellet.imgY) {
+        pellet.imgX = getRandomInt(0,8);
+        pellet.imgY = getRandomInt(0,8);    
+    }
+    
+    var image = pelletBoard.getContext('2d').getImageData(pellet.imgX*20,pellet.imgY*20,20,20);
+
+    // var img = new Image();
+    // img.src = image.data;
+    // debugger;
+    // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
+    CONTEXT.putImageData(image, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );    
 };
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 var renderHero = function() {
     //  hero is always at the center of the canvas
@@ -52,8 +90,7 @@ var renderBubbles = function() {
         bottom: hero.y + CENTER.y
     };
 
-    bubbles = engine.bubbles;
-    bubbleKeys = engine.bubbleKeys;
+    bubbleKeys = Object.keys(bubbles);
 
     bubbleKeys.forEach(function(key) {
         var bubble = bubbles[key];
@@ -64,6 +101,25 @@ var renderBubbles = function() {
 
 var renderBubble = function(bubble) {
     drawCircle(bubble.x - hero.x + CENTER.x, bubble.y - hero.y + CENTER.y, bubble.radius, bubble.color);
+};
+
+var renderPellets = function() {
+    var leftEdge = hero.x - CENTER.x;
+    var topEdge = hero.y - CENTER.y;
+    var cellSide = RADIUS_WIDTH;
+    var leftmostCell = Math.floor(leftEdge/cellSide);
+    var topmostCell = Math.floor(topEdge/cellSide);
+    var cellsWide = Math.ceil(WIDTH/cellSide);
+    var cellsHigh = Math.ceil(HEIGHT/cellSide);
+
+    for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
+        for(var i = topmostCell; i < topmostCell + cellsHigh; i++) {
+            if(pellets[j+'-'+i])
+                pellets[j+'-'+i].forEach(function(pellet) {
+                    //console.log(pellet);
+                    renderPellet(pellet);
+                });
+        }
 };
 
 var generateBubble = function(properties) {
@@ -107,16 +163,18 @@ var seedBubbles = function(reps) {
 };
 
 var getMouseCoords = function(e) {
-    //  client will eventually be "transmitting" these coordinates to the server
     updateHeroVector(e.clientX-CENTER.x, e.clientY-CENTER.y);
 };
 
 var updateHeroVector = function(mouseDx, mouseDy) {
-    hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
+    socket.emit('player.move', {id: hero.id, dx: mouseDx, dy: mouseDy});
+    //hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
 };
 
 var initializeCanvas = function() {
     CANVAS = document.getElementById('canvas');
+    CANVAS.width = window.innerWidth;
+    CANVAS.height = window.innerHeight;
     WIDTH = CANVAS.width;
     HEIGHT = CANVAS.height;
     CENTER = {
@@ -131,7 +189,7 @@ var inRange = function(bubble) {
     return gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
 };
 
-var renderGridLines = function() {
+var renderGridLines = function(context) {
     var cellSide = RADIUS_WIDTH * 3;    
 
     var leftEdge = hero.x - CENTER.x;
@@ -139,25 +197,55 @@ var renderGridLines = function() {
     var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
     var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
+
     for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
-        drawGridLine(x, 0, x, HEIGHT);
+        drawGridLine(x, 0, x, HEIGHT, context);
     for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
-        drawGridLine(0, y, WIDTH, y);
+        drawGridLine(0, y, WIDTH, y, context);
+
 };
 
-var drawGridLine = function(x1, y1, x2, y2) {
-    CONTEXT.lineWidth = 1;
-    CONTEXT.beginPath();
-    CONTEXT.moveTo(x1,y1);
-    CONTEXT.lineTo(x2,y2);
-    CONTEXT.strokeStyle = '#CCCCCC';
-    CONTEXT.stroke();
+var createOffscreenCircle = function(pellet) {
+    var offScreenCanvas = document.createElement('canvas');
+    offScreenCanvas.width = 2*pellet.radius;
+    offScreenCanvas.height = 2*pellet.radius;
+    var offScreenContext = offScreenCanvas.getContext('2d');
+
+    drawCircle(pellet.radius, pellet.radius, pellet.radius*.7, '#00FF00', offScreenContext);
+    //renderGridLines(offScreenContext);
+
+    pelletImage = offScreenContext.getImageData(0,0, 2*pellet.radius, 2*pellet.radius);
+}
+
+var createOffScreenPelletBoard = function(pellet) {
+    var offCvs = document.createElement('canvas');
+    offCvs.width = 240;
+    offCvs.height = 240;
+    var ctx = offCvs.getContext('2d');
+    ctx.fillStyle="rgba(255, 255, 255, 0)";
+    ctx.fillRect(0, 0, 240, 240);
+
+  var radiusOfCircle = 10;
+  for (var x = radiusOfCircle; x < offCvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
+    for (var y = radiusOfCircle; y < offCvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
+      drawCircle(x,y,radiusOfCircle - 3, getRandomColor(), ctx, 0);
+    }
+  }
+    pelletBoard = offCvs;
+}
+
+var drawGridLine = function(x1, y1, x2, y2, context) {
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(x1,y1);
+    context.lineTo(x2,y2);
+    context.strokeStyle = '#CCCCCC';
+    context.stroke();
 };
 
-var initializeHero = function() {
+var initializeHero = function(serverHero) {
     //  for now, we just generate another random bubble
-    hero = generateBubble({name: -1, color: 'green', x: 50, y: 50, radius: gameFunctions.STARTING_RADIUS+1});   //  cheating to see gobble effect
-    engine.addBubbles([hero]);
+    hero = serverHero;
     bubbles[hero.name] = hero;
 };
 
@@ -172,35 +260,98 @@ var initializeEngine = function(gridWidth, gridHeight) {
     engine = new Engine(-1, RADIUS_WIDTH, gridWidth, gridHeight, true, true);
 };
 
+var run = function() {
+    now = Date.now();
+    delta = now - then;
+
+    if (delta > INTERVAL) {
+        if(frame % 100 == 0)
+            console.log("delta:", delta);
+        then = now - (delta % INTERVAL);
+        CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
+        renderGridLines(CONTEXT);
+        //createOffscreenGrid();
+        //engine.updateState();
+        renderPellets();
+        renderBubbles();
+        //frame++;
+    }
+    requestAnimationFrame(run);
+};
+
+var addPellet = function(pellet) {
+    var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+    if(frame === 150) {
+        console.log("Pellet sample:", pellet, key);
+        frame = 0;
+    }
+    if(!pellets[key])
+        pellets[key] = [];
+    pellets[key].push(pellet);
+    frame++;
+};
+
+var initializeVariables = function(vars) {
+    console.log("Welcome package:", vars);
+        RADIUS_WIDTH = vars.RADIUS_WIDTH;
+        GRID_WIDTH = vars.GRID_WIDTH;
+        GRID_HEIGHT = vars.GRID_HEIGHT;
+        FPS = vars.FPS;
+        INTERVAL = 1000/FPS;
+        pellets = vars.pellets;
+        
+        //initializeEngine();
+        initializeCanvas();
+        initializeHero(vars.hero);
+        //initializeEnemies(5000);
+
+
+        var pellet = pellets[Object.keys(pellets)[0]];
+        createOffScreenPelletBoard(pellet[0]);
+
+        frame = 0;
+};
+
+var startOver = function() {
+    //  clear out variables
+    socket.emit('iWannaPlay', {name: 'Test Player'});
+};
+
 window.onload = function() {
-    initializeEngine(20000, 20000);
-    initializeCanvas();
-    initializeHero();
-    initializeEnemies(5000);
-    var frame = 0;
-    var now;
-    var then = Date.now();
-    
+    socket = io(host, {query: "name=-1"});
 
+    socket.on('acknowledged', function(connection) {
+        setTimeout(function() {
+            socket.emit('iWannaPlay', {name: 'Test Player'});
+        }.bind(this), 5000);
+        console.log("Respawning in 5 seconds...");
+    });
 
-    
-    // var run = function() {
-    //     requestAnimationFrame(run);
-    //     now = Date.now();
-    //     delta = now - then;
+    socket.on('welcome', function(vars) {
+        initializeVariables(vars);
+    });
 
-    //     if (delta > INTERVAL) {
-    //         then = now - (delta % INTERVAL);
-    //         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-    //         renderGridLines();
-    //         engine.updateState();
-    //         renderBubbles();
-    //         frame++;
-    //     }
-    // }
-    // run();
+    socket.on('state.update', function(stateVars) {
+        if(!hero)
+            return;
+        addPellet(stateVars.newPellet);
+        bubbles = stateVars.bubbles;
+        hero = bubbles[hero.id];
+        if(!hero)
+            startOver();
+        stateVars.eatenPellets.forEach(function(pellet) {
+            var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+            if(pellets[key])
+                for(var i = 0; i < pellets[key].length; i++) {
+                    var candidate = pellets[key][i];
+                    if(candidate.x+'-'+candidate.y === pellet.x+'-'+pellet.y) {
+                        pellets[key].splice(i,1); i--;
+                    }
+                }
+        });
+    });
 
-}
-
+    run();  //  this used to be in the on welcome listener
+};
 
 

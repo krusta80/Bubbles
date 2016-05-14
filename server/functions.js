@@ -1,5 +1,5 @@
 
-var module.exports = {
+module.exports = {
 
 	STARTING_RADIUS: 25,				//	size of a newly-spawned bubble
 	STARTING_MAX_SPEED: 100,			//	max speed of a newly-spawned bubble
@@ -9,11 +9,11 @@ var module.exports = {
 		bubbles.
 	*/
 
-	var generateBubble = function(properties) {
+	generateBubble: function(properties) {
 	    if(properties.color)
 	        var color = properties.color;
 	    else
-	        var color = getRandomColor();
+	        var color = this.getRandomColor();
 	    if(properties.dx === undefined)
 	        properties.dx = 0;
 	    if(properties.dy === undefined)
@@ -24,7 +24,9 @@ var module.exports = {
 	        var radius = this.STARTING_RADIUS;
 
 	    return {
+	        id: properties.id,
 	        name: properties.name,
+	        score: radius*10,
 	        x: 1000,
 	        y: 1000,
 	        radius: radius,
@@ -36,7 +38,7 @@ var module.exports = {
 	    };
 	},
 
-	var getRandomColor = function() {
+	getRandomColor: function() {
 	    var RR = Math.floor(Math.random()*256).toString(16);
 	    var GG = Math.floor(Math.random()*256).toString(16);
 	    var BB = Math.floor(Math.random()*256).toString(16);
@@ -97,7 +99,7 @@ var module.exports = {
 
 	getSpeedFraction: function(distanceFromCenter) {
 		distanceFromCenter /= this.STARTING_RADIUS;
-		var pers = [0, 0, .2, .4, 1];
+		var pers = [0, .3, 1, 1, 1];
 		var floored = Math.floor(distanceFromCenter);
 		if(floored > 4)
 			floored = 4;

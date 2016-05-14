@@ -2,7 +2,8 @@
 <html>
 <head>
   <title>bubbles test ground</title>
-
+  <script type="text/javascript" src="./socket.io.js"></script>
+  <script type="text/javascript" src="./host.js"></script>
   <script type="text/javascript" src="./functions.js"></script>
   <script type="text/javascript" src="./engine.js"></script>
   <script type="text/javascript" src="./canvas.js"></script>
@@ -10,11 +11,11 @@
   <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
   <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
 </head>
-<body>
+<body align="center"> 
+  <canvas id="canvas" onmousemove="getMouseCoords(event)"></canvas>
   
-  
-  <canvas id="canvas" width="900" height="700" onmousemove="getMouseCoords(event)"></canvas>
 
+  <!-- popup stuff -->
   <div id="popup" class="wrapper">
     <div class="container">
       <div class="innercontainer center-block">
@@ -31,11 +32,19 @@
       </div>
     </div>
   </div>
+
 </body>
 
 <style type="text/css">
   canvas {
-    border: 1px solid black;
+    /*border: 1px solid black;*/
+    display: block;
+  }
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 </style>
 </html>
