@@ -145,34 +145,25 @@ var renderGridLines = function(context) {
     var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
     var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
+
     for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
         drawGridLine(x, 0, x, HEIGHT, context);
     for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
         drawGridLine(0, y, WIDTH, y, context);
+
 };
-var createOffScreenCanvas = function() {
-    var offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = WIDTH;
-    offscreenCanvas.height = HEIGHT;
-    var offscreenContext = offscreenCanvas.getContext('2d');
-    renderGridLines(offscreenContext);
+var createOffscreenGrid = function() {
+    var offScreenCanvas = document.createElement('canvas');
+    offScreenCanvas.width = WIDTH;
+    offScreenCanvas.height = HEIGHT;
+    var offScreenContext = offScreenCanvas.getContext('2d');
 
-    return offscreenCanvas;
+    renderGridLines(offScreenContext);
+
+    var image = offScreenContext.getImageData(0,0,WIDTH, HEIGHT);
+    CONTEXT.putImageData(image, 0, 0);
 }
 
-var copyIntoOnScreenCanvas= function(offscreenCanvas) {
-    var onscreenContext = CONTEXT;
-    var offscreenContext = offscreenCanvas.getContext('2d');
-
-
-    
-    // cut the drawn rectangle
-    var image = offscreenContext.getImageData(0,0,WIDTH,HEIGHT); 
-    // copy into visual canvas at different position
-
-    
-    onscreenContext.putImageData(image, image.width, image.height);
-}
 var drawGridLine = function(x1, y1, x2, y2, context) {
     context.lineWidth = 1;
     context.beginPath();
@@ -207,8 +198,8 @@ var run = function() {
     if (delta > INTERVAL) {
         then = now - (delta % INTERVAL);
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        // renderGridLines();
-        copyIntoOnScreenCanvas(createOffScreenCanvas());
+        // renderGridLines(CONTEXT);
+        createOffscreenGrid();
         //engine.updateState();
         renderBubbles();
         //frame++;
@@ -216,14 +207,14 @@ var run = function() {
 };
 
 window.onload = function() {
-    socket = io('http://pandora.dyndns.biz:1337', {query: "name=-1"});
+    socket = io('http://localhost:1337', {query: "name=-1"});
 
     socket.on('welcome', function(vars) {
         console.log("Welcome package:", vars);
         RADIUS_WIDTH = vars.RADIUS_WIDTH;
         GRID_WIDTH = vars.GRID_WIDTH;
         GRID_HEIGHT = vars.GRID_HEIGHT;
-        FPS = 60;
+        FPS = vars.FPS;
         INTERVAL = 1000/FPS;
         //initializeEngine();
         initializeCanvas();
