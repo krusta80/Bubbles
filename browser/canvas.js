@@ -362,7 +362,7 @@ window.onload = function() {
         template = "<div class='throne'>THE THRONE IS OPEN</div>";
       } else {
         for (var i = 0; i < leaderboard.length; i++) {    
-          template += "<tr><th>" + i+1 + "</th><td>" + leaderboard[i].name + "</td><td>" + leaderboard[i].score + "</td></tr>"  
+          template += "<tr><th>" + i+1 + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
         }  
       }
       
