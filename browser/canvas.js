@@ -73,7 +73,7 @@ var renderPellet = function(pellet) {
     // img.src = image.data;
     // debugger;
     // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
-    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius,0,0,20/panFactor,20/panFactor);    
+    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius);    
 };
 
 function getRandomInt(min, max) {
