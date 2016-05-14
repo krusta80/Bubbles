@@ -32,6 +32,8 @@
   border: 10px solid gray;
   -webkit-transition: right 2s; /* Safari */
   transition: right 2s;
+  overflow: auto;
+  padding-right: 10px;
 }
 #leaderboard .button {
   text-align: left;

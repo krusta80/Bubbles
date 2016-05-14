@@ -99,6 +99,31 @@ var renderBubbles = function() {
 
 var renderBubble = function(bubble) {
     drawCircle((bubble.x - heroCoords.x)/panFactor + CENTER.x, (bubble.y - heroCoords.y)/panFactor + CENTER.y, bubble.radius/panFactor, bubble.color);
+    CONTEXT.fillStyle = "#ffffff"; // font color to write the text with
+
+    var coefficient = 0.5;
+    var fontsize = (Math.round(bubble.radius * coefficient) - 5);
+    var ratio = 0.25;
+
+    if (bubble.radius < 40) {
+        fontsize = 10;
+        ratio = 0.5;
+        coefficient = 0.8
+    }  
+    if (bubble.name.length > 8 && bubble.radius < 40) {
+        fontsize = 12;
+        ratio = 1;
+        coefficient = 0.8
+    }
+    var distanceLeft = (bubble.name.length * (fontsize*coefficient))/2;
+    var font = "bold " + fontsize +"px arial";
+    CONTEXT.font = font;
+
+    // CONTEXT.textAlign = "center";
+
+    CONTEXT.fillText(bubble.name, bubble.x - heroCoords.x + CENTER.x - distanceLeft, bubble.y - heroCoords.y + CENTER.y+2);
+
+
 };
 
 var renderPellets = function() {
@@ -314,15 +339,20 @@ var initializeVariables = function(vars) {
 
 var startOver = function() {
     startingOver = true;
-    setTimeout(function() {
-        //  clear out variables
-        bubbles = {};           //  ALL bubbles
-        bubbleKeys = [];
-        pellets = {};
-        //engine; 
-        socket.emit('iWannaPlay', {name: 'Test Player'});
-    }.bind(this), 5000);
-    console.log("Respawning in 5 seconds...");
+    // setTimeout(function() {
+    //     //  clear out variables
+    //     bubbles = {};           //  ALL bubbles
+    //     bubbleKeys = [];
+    //     pellets = {};
+    //     //engine; 
+    //     socket.emit('iWannaPlay', {name: 'Test Player'});
+    // }.bind(this), 5000);
+    // console.log("Respawning in 5 seconds...");
+
+    bubbles = {};           //  ALL bubbles
+    bubbleKeys = [];
+    pellets = {};
+    $('#popup').show();
 };
 
 window.onload = function() {
@@ -372,11 +402,13 @@ window.onload = function() {
       var template = ""
 
       if (leaderboard.length === 0) {
-        template = "<div class='throne'>THE THRONE IS OPEN</div>";
+        template = "<div style='width: 100%; position: absolute;' class='throne danger'><strong>THE THRONE IS OPEN</strong></div>";
       } else {
         for (var i = 0; i < leaderboard.length; i++) {    
-          template += "<tr><th>" + i+1 + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
+          template += "<tr><th>" + (i+1) + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
         }  
+
+
       }
       
       $('.leaderboardBody').html(template);
