@@ -121,8 +121,8 @@ var updateHeroVector = function(mouseDx, mouseDy) {
 
 var initializeCanvas = function() {
     CANVAS = document.getElementById('canvas');
-    CANVAS.width = screen.width*.95;
-    CANVAS.height = screen.height*.9;
+    CANVAS.width = window.innerWidth;
+    CANVAS.height = window.innerHeight;
     WIDTH = CANVAS.width;
     HEIGHT = CANVAS.height;
     CENTER = {
