@@ -50,7 +50,7 @@ Engine.prototype._spawnPellet = function() {
 		pellet.x = Math.floor(Math.random()*this.width);
 		pellet.y = Math.floor(Math.random()*this.height);
 	}
-	var key = Math.floor(pellet.x/gameFunctions.STARTING_RADIUS) + '-' + Math.floor(pellet.y/gameFunctions.STARTING_RADIUS);
+	var key = Math.ceil(pellet.x/gameFunctions.STARTING_RADIUS) + '-' + Math.ceil(pellet.y/gameFunctions.STARTING_RADIUS);
 	if(!this.pellets[key])
 		this.pellets[key] = [];
 	this.pellets[key].push(pellet);
@@ -66,12 +66,12 @@ Engine.prototype.eatPellets = function(bubble) {
     var leftmostCell = Math.ceil(leftEdge/cellSide);
     var topmostCell = Math.ceil(topEdge/cellSide);
 	var oldMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
-	var cellsWide = Math.ceil(2*bubble.radius/gameFunctions.STARTING_RADIUS);
+	var cellsWide = Math.ceil((2*bubble.radius)/gameFunctions.STARTING_RADIUS);
 						
 	var eatenPellets = [];
 
     for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
-    	for(var i = topmostCell; i < topmostCell + 2*cellsWide; i++) 
+    	for(var i = topmostCell; i < topmostCell + cellsWide; i++) 
     		if(this.pellets[j+'-'+i])
     			for(var p = 0; p < this.pellets[j+'-'+i].length; p++) {
     				var pellet = this.pellets[j+'-'+i][p];
@@ -85,6 +85,7 @@ Engine.prototype.eatPellets = function(bubble) {
     			}
     var newMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
     if(eatenPellets.length > 0) {
+    	console.log("yum", eatenPellets.length);
     	bubble.vector = {
 			dx: bubble.vector.dx * newMaxSpeed / oldMaxSpeed,
 			dy: bubble.vector.dy * newMaxSpeed / oldMaxSpeed
@@ -109,7 +110,8 @@ Engine.prototype.updateState = function(spawnPellet) {
 	var bubble, bubble2;
 	var tmp; 
 	var bubbleLost = false;
-	
+	this.eatenPellets = [];
+
 	//	first we update the positions 						O(n)
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];

@@ -109,8 +109,8 @@ var renderPellets = function() {
     var leftEdge = heroCoords.x - CENTER.x;
     var topEdge = heroCoords.y - CENTER.y;
     var cellSide = RADIUS_WIDTH;
-    var leftmostCell = Math.floor(leftEdge/cellSide);
-    var topmostCell = Math.floor(topEdge/cellSide);
+    var leftmostCell = Math.ceil(leftEdge/cellSide);
+    var topmostCell = Math.ceil(topEdge/cellSide);
     var cellsWide = Math.ceil(WIDTH/cellSide);
     var cellsHigh = Math.ceil(HEIGHT/cellSide);
 
@@ -165,7 +165,8 @@ var seedBubbles = function(reps) {
 };
 
 var getMouseCoords = function(e) {
-    updateHeroVector(e.clientX-CENTER.x, e.clientY-CENTER.y);
+    if(CENTER)
+        updateHeroVector(e.clientX-CENTER.x, e.clientY-CENTER.y);
 };
 
 var updateHeroVector = function(mouseDx, mouseDy) {
@@ -269,8 +270,8 @@ var run = function() {
     delta = now - then;
 
     if (delta > INTERVAL && hero) {
-        if(frame % 100 == 0)
-            console.log("delta:", delta);
+        // if(frame % 100 == 0)
+        //     console.log("delta:", delta);
         then = now - (delta % INTERVAL);
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
         renderGridLines(CONTEXT);
@@ -284,11 +285,11 @@ var run = function() {
 };
 
 var addPellet = function(pellet) {
-    var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
-    if(frame === 150) {
-        console.log("Pellet sample:", pellet, key);
-        frame = 0;
-    }
+    var key = Math.ceil(pellet.x/RADIUS_WIDTH) + '-' + Math.ceil(pellet.y/RADIUS_WIDTH);
+    // if(frame === 150) {
+    //     console.log("Pellet sample:", pellet, key);
+    //     frame = 0;
+    // }
     if(!pellets[key])
         pellets[key] = [];
     pellets[key].push(pellet);
@@ -354,8 +355,12 @@ window.onload = function() {
         else if(!startingOver) {
             startOver();
         }
+        
+        //console.log("Eaten pellets:", stateVars.eatenPellets);
+        if(stateVars.eatenPellets.length > 0)
+            console.log("Eaten pellets received:", stateVars.eatenPellets);
         stateVars.eatenPellets.forEach(function(pellet) {
-            var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+            var key = Math.ceil(pellet.x/RADIUS_WIDTH) + '-' + Math.ceil(pellet.y/RADIUS_WIDTH);
             if(pellets[key])
                 for(var i = 0; i < pellets[key].length; i++) {
                     var candidate = pellets[key][i];
