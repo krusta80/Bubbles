@@ -137,8 +137,8 @@ var inRange = function(bubble) {
     return gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
 };
 
-var renderGridLines = function() {
-    var cellSide = RADIUS_WIDTH * 2;    
+var renderGridLines = function(context) {
+    var cellSide = RADIUS_WIDTH * 4;    
 
     var leftEdge = hero.x - CENTER.x;
     var topEdge = hero.y - CENTER.y;
@@ -146,18 +146,40 @@ var renderGridLines = function() {
     var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
     for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
-        drawGridLine(x, 0, x, HEIGHT);
+        drawGridLine(x, 0, x, HEIGHT, context);
     for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
-        drawGridLine(0, y, WIDTH, y);
+        drawGridLine(0, y, WIDTH, y, context);
 };
+var createOffScreenCanvas = function() {
+    var offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = WIDTH;
+    offscreenCanvas.height = HEIGHT;
+    var offscreenContext = offscreenCanvas.getContext('2d');
+    renderGridLines(offscreenContext);
 
-var drawGridLine = function(x1, y1, x2, y2) {
-    CONTEXT.lineWidth = 1;
-    CONTEXT.beginPath();
-    CONTEXT.moveTo(x1,y1);
-    CONTEXT.lineTo(x2,y2);
-    CONTEXT.strokeStyle = '#CCCCCC';
-    CONTEXT.stroke();
+    return offscreenCanvas;
+}
+
+var copyIntoOnScreenCanvas= function(offscreenCanvas) {
+    var onscreenContext = CONTEXT;
+    var offscreenContext = offscreenCanvas.getContext('2d');
+
+
+    
+    // cut the drawn rectangle
+    var image = offscreenContext.getImageData(0,0,WIDTH,HEIGHT); 
+    // copy into visual canvas at different position
+
+    
+    onscreenContext.putImageData(image, image.width, image.height);
+}
+var drawGridLine = function(x1, y1, x2, y2, context) {
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(x1,y1);
+    context.lineTo(x2,y2);
+    context.strokeStyle = '#CCCCCC';
+    context.stroke();
 };
 
 var initializeHero = function(serverHero) {
@@ -185,7 +207,8 @@ var run = function() {
     if (delta > INTERVAL) {
         then = now - (delta % INTERVAL);
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        renderGridLines();
+        // renderGridLines();
+        copyIntoOnScreenCanvas(createOffScreenCanvas());
         //engine.updateState();
         renderBubbles();
         //frame++;
@@ -200,7 +223,7 @@ window.onload = function() {
         RADIUS_WIDTH = vars.RADIUS_WIDTH;
         GRID_WIDTH = vars.GRID_WIDTH;
         GRID_HEIGHT = vars.GRID_HEIGHT;
-        FPS = vars.FPS;
+        FPS = 60;
         INTERVAL = 1000/FPS;
         //initializeEngine();
         initializeCanvas();
