@@ -62,28 +62,29 @@ Engine.prototype.eatPellets = function(bubble) {
     var cellSide = gameFunctions.STARTING_RADIUS;
     var leftmostCell = Math.ceil(leftEdge/cellSide);
     var topmostCell = Math.ceil(topEdge/cellSide);
-	var oldMaxSpeed = gameFunctions.getMaxSpeed(bubble);
+	var oldMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
 	var cellsWide = Math.ceil(2*bubble.radius/gameFunctions.STARTING_RADIUS);
 						
 	var eatenPellets = [];
 
-    for(var j = leftmostCell; j < leftmostCell + cellsWide; j += cellSide) 
-    	for(var i = topmostCell; i < topmostCell + 2*cellsWide; i += cellSide) 
-    		if(this.pellets[j+'-'+'i'])
-    			for(var p = 0; p < this.pellets[j+'-'+'i'].length; p++) {
-    				var pellet = this.pellets[j+'-'+'i'][p];
+    for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
+    	for(var i = topmostCell; i < topmostCell + 2*cellsWide; i++) 
+    		if(this.pellets[j+'-'+i])
+    			for(var p = 0; p < this.pellets[j+'-'+i].length; p++) {
+    				var pellet = this.pellets[j+'-'+i][p];
     				if(gameFunctions.haveCollided(bubble, pellet)) {
     					bubble.radius = gameFunctions.getPostGobbleRadius(bubble, pellet);
-    					this.pellets[j+'-'+'i'].splice(p,1); p--;
+    					this.pellets[j+'-'+i].splice(p,1); p--;
     					eatenPellets.push(pellet);
     				}
     			}
-    var newMaxSpeed = gameFunctions.getMaxSpeed(bubble);
-    if(eatenPellets.length > 0)
-	    bubble.vector = {
+    var newMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
+    if(eatenPellets.length > 0) {
+    	bubble.vector = {
 			dx: bubble.vector.dx * newMaxSpeed / oldMaxSpeed,
 			dy: bubble.vector.dy * newMaxSpeed / oldMaxSpeed
 		};					
+	}
 	return eatenPellets;
 };
 
@@ -139,15 +140,21 @@ Engine.prototype.updateState = function() {
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
 		
+		if(!bubble)
+			continue;
+
 		if(bubble.markedForRemoval) {
 			marked.push(bubble.id);
 			continue;
 		}
 		else
-			this.eatenPellets = [];//this.eatPellets(bubble);
+			this.eatenPellets = this.eatPellets(bubble);
 
 		for(var j = i+1; j < this.bubbleKeys.length; j++) {
 			bubble2 = this.bubbles[this.bubbleKeys[j]];
+			if(!bubble2)
+				continue;
+
 			if(bubble && bubble2 && gameFunctions.haveCollided(bubble, bubble2)) {
 				tmp = gameFunctions.getCollisionResult(bubble, bubble2);
 				if(tmp.winner) {

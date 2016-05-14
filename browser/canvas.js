@@ -80,12 +80,12 @@ var renderPellets = function() {
     var topmostCell = Math.floor(topEdge/cellSide);
     var cellsWide = Math.ceil(WIDTH/cellSide);
     var cellsHigh = Math.ceil(HEIGHT/cellSide);
-                         
-    for(var j = leftmostCell; j < leftmostCell + cellsWide; j += cellSide) 
-        for(var i = topmostCell; i < topmostCell + cellsHigh; i += cellSide) {
+
+    for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
+        for(var i = topmostCell; i < topmostCell + cellsHigh; i++) {
             if(pellets[j+'-'+i])
                 pellets[j+'-'+i].forEach(function(pellet) {
-                    console.log(pellet);
+                    //console.log(pellet);
                     renderBubble(pellet);
                 });
         }
@@ -233,16 +233,25 @@ window.onload = function() {
         run();
     });
 
-    socket.on('state.update', function(serverBubbles) {
-        bubbles = serverBubbles;
+    socket.on('state.update', function(stateVars) {
+        bubbles = stateVars.bubbles;
         hero = bubbles[hero.id];
+        stateVars.eatenPellets.forEach(function(pellet) {
+            var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+            if(pellets[key])
+                for(var i = 0; i < pellets[key].length; i++) {
+                    var candidate = pellets[key][i];
+                    if(candidate.x+'-'+candidate.y === pellet.x+'-'+pellet.y) {
+                        pellets[key].splice(i,1); i--;
+                    }
+                }
+        });
     });
 
     socket.on('pellet', function(pellet) {
         var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
         if(frame === 150) {
             console.log("Pellet sample:", pellet, key);
-            console.log("Pellets:", pellets);
             frame = 0;
         }
         if(!pellets[key])

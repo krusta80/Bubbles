@@ -37,10 +37,12 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('disconnect', function() {
-		console.log("	--->", bubbles[socket.id].name, "has left the game!");
-		console.log("	   >", socket.id);
-		engine.removeBubble(socket.id);
-		console.log("There are now", --playerCount, "players.");
+		if(bubbles[socket.id]) {
+			console.log("	--->", bubbles[socket.id].name, "has left the game!");
+			console.log("	   >", socket.id);
+			engine.removeBubble(socket.id);
+			console.log("There are now", --playerCount, "players.");	
+		}
 	});
 
 	socket.on('player.move', function(move) {
@@ -60,15 +62,15 @@ runningTotal = 0;
 setInterval(function() {
 	tic = Date.now();
 	engine.updateState();
-	io.emit('pellet', engine.newestPellet);
 	toc = Date.now();
+	io.emit('pellet', engine.newestPellet);
 	runningTotal += (toc-tic);
 	if(frame === 299) {
 		frame = 0;
 		console.log("MAX FPS:", 300000/runningTotal);
 		runningTotal = 0;
 	}
-	io.emit('state.update', bubbles);
+	io.emit('state.update', {bubbles: bubbles, eatenPellets: engine.eatenPellets});
 	frame++;
 }.bind(this), 1000/FPS);
 
