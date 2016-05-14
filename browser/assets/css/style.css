@@ -49,8 +49,8 @@
   right: -250px;
 }
 #leaderboard.closed .button {
-  position: absolute;
-  left: -44px;
+  position: fixed;
+  right: 0;
   top: 0;
 }
 #leaderboard .close-btn{
