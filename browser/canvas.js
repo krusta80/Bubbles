@@ -9,6 +9,7 @@ var GRID_WIDTH;
 var GRID_HEIGHT;
 var FPS;
 var INTERVAL;
+var frame;
 var now;
 var then = Date.now();
 
@@ -17,6 +18,7 @@ var socket;                 //  socket.io connection to server
 var hero;                   //  player's bubble
 var bubbles = {};           //  ALL bubbles
 var bubbleKeys = [];
+var pellets = {};
 var engine; 
 
 // takes in a position x and y at its center and radius to create a circle
@@ -38,8 +40,8 @@ var getRandomColor = function() {
     return '#'+RR+GG+BB;
 };
 
-var renderBubble = function(bubble) {
-    drawCircle(bubble.x, bubble.y, bubble.radius, bubble.color);
+var renderPellet = function(pellet) {
+     drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
 };
 
 var renderHero = function() {
@@ -68,6 +70,25 @@ var renderBubbles = function() {
 
 var renderBubble = function(bubble) {
     drawCircle(bubble.x - hero.x + CENTER.x, bubble.y - hero.y + CENTER.y, bubble.radius, bubble.color);
+};
+
+var renderPellets = function() {
+    var leftEdge = hero.x - CENTER.x;
+    var topEdge = hero.y - CENTER.y;
+    var cellSide = RADIUS_WIDTH;
+    var leftmostCell = Math.floor(leftEdge/cellSide);
+    var topmostCell = Math.floor(topEdge/cellSide);
+    var cellsWide = Math.ceil(WIDTH/cellSide);
+    var cellsHigh = Math.ceil(HEIGHT/cellSide);
+                         
+    for(var j = leftmostCell; j < leftmostCell + cellsWide; j += cellSide) 
+        for(var i = topmostCell; i < topmostCell + cellsHigh; i += cellSide) {
+            if(pellets[j+'-'+i])
+                pellets[j+'-'+i].forEach(function(pellet) {
+                    console.log(pellet);
+                    renderBubble(pellet);
+                });
+        }
 };
 
 var generateBubble = function(properties) {
@@ -187,6 +208,7 @@ var run = function() {
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
         renderGridLines();
         //engine.updateState();
+        renderPellets();
         renderBubbles();
         //frame++;
     }
@@ -202,17 +224,31 @@ window.onload = function() {
         GRID_HEIGHT = vars.GRID_HEIGHT;
         FPS = vars.FPS;
         INTERVAL = 1000/FPS;
+        pellets = vars.pellets;
         //initializeEngine();
         initializeCanvas();
         initializeHero(vars.hero);
         //initializeEnemies(5000);
-        var frame = 0;
+        frame = 0;
         run();
     });
 
     socket.on('state.update', function(serverBubbles) {
         bubbles = serverBubbles;
         hero = bubbles[hero.id];
+    });
+
+    socket.on('pellet', function(pellet) {
+        var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+        if(frame === 150) {
+            console.log("Pellet sample:", pellet, key);
+            console.log("Pellets:", pellets);
+            frame = 0;
+        }
+        if(!pellets[key])
+            pellets[key] = [];
+        pellets[key].push(pellet);
+        frame++;
     });
 };
 

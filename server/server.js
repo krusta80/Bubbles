@@ -32,7 +32,8 @@ io.on('connection', function (socket) {
 		RADIUS_WIDTH: RADIUS_WIDTH,
 		GRID_WIDTH: GRID_WIDTH,
 		GRID_HEIGHT: GRID_HEIGHT,
-		hero: newBubble
+		hero: newBubble,
+		pellets: engine.pellets
 	});
 
 	socket.on('disconnect', function() {
@@ -52,8 +53,23 @@ io.on('connection', function (socket) {
   	});
 });
 
+var tic, toc, runningTotal, frame;
+frame = 0;
+runningTotal = 0;
+
 setInterval(function() {
+	tic = Date.now();
 	engine.updateState();
+	io.emit('pellet', engine.newestPellet);
+	toc = Date.now();
+	runningTotal += (toc-tic);
+	if(frame === 299) {
+		frame = 0;
+		console.log("MAX FPS:", 300000/runningTotal);
+		runningTotal = 0;
+	}
 	io.emit('state.update', bubbles);
+	frame++;
 }.bind(this), 1000/FPS);
+
 
