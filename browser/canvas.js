@@ -375,5 +375,3 @@ window.onload = function() {
 
     run();  //  this used to be in the on welcome listener
 };
-
-
