@@ -137,27 +137,40 @@ var inRange = function(bubble) {
     return gameFunctions.getDistance(hero, bubble) <= Math.sqrt(WIDTH*WIDTH + HEIGHT*HEIGHT);
 };
 
-var renderGridLines = function() {
-    var cellSide = RADIUS_WIDTH * 2;    
+var renderGridLines = function(context) {
+    var cellSide = RADIUS_WIDTH * 4;    
 
     var leftEdge = hero.x - CENTER.x;
     var topEdge = hero.y - CENTER.y;
     var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
     var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
-    for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
-        drawGridLine(x, 0, x, HEIGHT);
-    for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
-        drawGridLine(0, y, WIDTH, y);
-};
 
-var drawGridLine = function(x1, y1, x2, y2) {
-    CONTEXT.lineWidth = 1;
-    CONTEXT.beginPath();
-    CONTEXT.moveTo(x1,y1);
-    CONTEXT.lineTo(x2,y2);
-    CONTEXT.strokeStyle = '#CCCCCC';
-    CONTEXT.stroke();
+    for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
+        drawGridLine(x, 0, x, HEIGHT, context);
+    for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
+        drawGridLine(0, y, WIDTH, y, context);
+
+};
+var createOffscreenGrid = function() {
+    var offScreenCanvas = document.createElement('canvas');
+    offScreenCanvas.width = WIDTH;
+    offScreenCanvas.height = HEIGHT;
+    var offScreenContext = offScreenCanvas.getContext('2d');
+
+    renderGridLines(offScreenContext);
+
+    var image = offScreenContext.getImageData(0,0,WIDTH, HEIGHT);
+    CONTEXT.putImageData(image, 0, 0);
+}
+
+var drawGridLine = function(x1, y1, x2, y2, context) {
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(x1,y1);
+    context.lineTo(x2,y2);
+    context.strokeStyle = '#CCCCCC';
+    context.stroke();
 };
 
 var initializeHero = function(serverHero) {
@@ -185,7 +198,8 @@ var run = function() {
     if (delta > INTERVAL) {
         then = now - (delta % INTERVAL);
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        renderGridLines();
+        // renderGridLines(CONTEXT);
+        createOffscreenGrid();
         //engine.updateState();
         renderBubbles();
         //frame++;
@@ -193,7 +207,7 @@ var run = function() {
 };
 
 window.onload = function() {
-    socket = io('http://pandora.dyndns.biz:1337', {query: "name=-1"});
+    socket = io('http://localhost:1337', {query: "name=-1"});
 
     socket.on('welcome', function(vars) {
         console.log("Welcome package:", vars);
