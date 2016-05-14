@@ -156,7 +156,7 @@ Engine.prototype.updateState = function(spawnPellet) {
 			continue;
 		}
 		else
-			this.eatenPellets.concat(this.eatPellets(bubble));
+			this.eatenPellets = this.eatenPellets.concat(this.eatPellets(bubble));
 
 		for(var j = i+1; j < this.bubbleKeys.length; j++) {
 			bubble2 = this.bubbles[this.bubbleKeys[j]];
