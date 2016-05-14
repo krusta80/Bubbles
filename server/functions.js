@@ -98,7 +98,7 @@ module.exports = {
 
 	getSpeedFraction: function(distanceFromCenter) {
 		distanceFromCenter /= this.STARTING_RADIUS;
-		var pers = [0, 0, .2, .4, 1];
+		var pers = [0, .3, 1, 1, 1];
 		var floored = Math.floor(distanceFromCenter);
 		if(floored > 4)
 			floored = 4;

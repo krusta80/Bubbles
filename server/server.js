@@ -8,11 +8,11 @@ var port = process.env.PORT || 1337;
 var io = require('socket.io').listen(port);
 var Engine = require('./engine');''
 var gameFunctions = require('./functions');
-var FPS = 30;
+var FPS = 80;
 
 const RADIUS_WIDTH = gameFunctions.STARTING_RADIUS;
-const GRID_WIDTH = 20000;
-const GRID_HEIGHT = 20000;
+const GRID_WIDTH = 10000;
+const GRID_HEIGHT = 10000;
 
 var engine = new Engine(-1, RADIUS_WIDTH, GRID_WIDTH, GRID_HEIGHT, false);
 var bubbles = engine.bubbles;
@@ -60,17 +60,19 @@ frame = 0;
 runningTotal = 0;
 
 setInterval(function() {
+	var spawnPellet = false;
+	if(frame % 10 === 0)
+		spawnPellet = true;
 	tic = Date.now();
-	engine.updateState();
+	engine.updateState(spawnPellet);
 	toc = Date.now();
-	io.emit('pellet', engine.newestPellet);
 	runningTotal += (toc-tic);
 	if(frame === 299) {
 		frame = 0;
 		console.log("MAX FPS:", 300000/runningTotal);
 		runningTotal = 0;
 	}
-	io.emit('state.update', {bubbles: bubbles, eatenPellets: engine.eatenPellets});
+	io.emit('state.update', {bubbles: bubbles, eatenPellets: engine.eatenPellets, newPellet: engine.newestPellet});
 	frame++;
 }.bind(this), 1000/FPS);
 

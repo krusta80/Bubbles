@@ -2,7 +2,7 @@ var gameFunctions = require('./functions');
 
 var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls, clientSide) {
 	gameFunctions.STARTING_RADIUS = radiusLength;
-	gameFunctions.STARTING_MAX_SPEED = 4*radiusLength;
+	gameFunctions.STARTING_MAX_SPEED = 2*radiusLength;
 	this.FPS = framesPerSecond;
 	this.width = width;
 	this.height = height;
@@ -40,7 +40,7 @@ Engine.prototype._spawnPellet = function() {
 	var pellet = {
 		x: Math.floor(Math.random()*this.width), 
 		y: Math.floor(Math.random()*this.height), 
-		radius: gameFunctions.STARTING_RADIUS/6,
+		radius: gameFunctions.STARTING_RADIUS/3,
 		color: gameFunctions.getRandomColor()
 	};
 
@@ -98,7 +98,7 @@ Engine.prototype.isClear = function(bubble) {
 	return true;
 };
 
-Engine.prototype.updateState = function() {
+Engine.prototype.updateState = function(spawnPellet) {
 	//	We go through all bubbles and process their latest 
 	//  vector info to update their positions
 	var bubble, bubble2;
@@ -133,7 +133,8 @@ Engine.prototype.updateState = function() {
 		}
 	}
 
-	this.newestPellet = this._spawnPellet();
+	if(spawnPellet)
+		this.newestPellet = this._spawnPellet();
 
 	var marked = [];
 	//	next we check for collisions 						O(n^2)

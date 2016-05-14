@@ -20,17 +20,20 @@ var bubbles = {};           //  ALL bubbles
 var bubbleKeys = [];
 var pellets = {};
 var engine; 
+var pelletImage;
 
 // takes in a position x and y at its center and radius to create a circle
-function drawCircle(centerX, centerY, radius, color) {
-    CONTEXT.beginPath();
-    CONTEXT.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-    CONTEXT.fillStyle = color;
-    CONTEXT.fill();
-    CONTEXT.lineWidth = 5;
-    //CONTEXT.strokeStyle = '#003300';
-    CONTEXT.strokeStyle = color;
-    CONTEXT.stroke();
+function drawCircle(centerX, centerY, radius, color, context) {
+    if(!context)
+        var context = CONTEXT;
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+    context.fillStyle = color;
+    context.fill();
+    context.lineWidth = 5;
+    //context.strokeStyle = '#003300';
+    context.strokeStyle = color;
+    context.stroke();
 }
 
 var getRandomColor = function() {
@@ -41,7 +44,14 @@ var getRandomColor = function() {
 };
 
 var renderPellet = function(pellet) {
-     drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
+     if(pelletImage) {
+        //console.log("pasting");
+        CONTEXT.putImageData(pelletImage, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius);
+    }
+     else {
+        createOffscreenCircle(pellet);
+        drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
+    }
 };
 
 var renderHero = function() {
@@ -86,7 +96,7 @@ var renderPellets = function() {
             if(pellets[j+'-'+i])
                 pellets[j+'-'+i].forEach(function(pellet) {
                     //console.log(pellet);
-                    renderBubble(pellet);
+                    renderPellet(pellet);
                 });
         }
 };
@@ -159,7 +169,7 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function(context) {
-    var cellSide = RADIUS_WIDTH * 4;    
+    var cellSide = RADIUS_WIDTH * 2.5;    
 
     var leftEdge = hero.x - CENTER.x;
     var topEdge = hero.y - CENTER.y;
@@ -173,16 +183,17 @@ var renderGridLines = function(context) {
         drawGridLine(0, y, WIDTH, y, context);
 
 };
-var createOffscreenGrid = function() {
+
+var createOffscreenCircle = function(pellet) {
     var offScreenCanvas = document.createElement('canvas');
-    offScreenCanvas.width = WIDTH;
-    offScreenCanvas.height = HEIGHT;
+    offScreenCanvas.width = 2*pellet.radius;
+    offScreenCanvas.height = 2*pellet.radius;
     var offScreenContext = offScreenCanvas.getContext('2d');
 
-    renderGridLines(offScreenContext);
+    drawCircle(pellet.radius, pellet.radius, pellet.radius*.7, '#00FF00', offScreenContext);
+    //renderGridLines(offScreenContext);
 
-    var image = offScreenContext.getImageData(0,0,WIDTH, HEIGHT);
-    CONTEXT.putImageData(image, 0, 0);
+    pelletImage = offScreenContext.getImageData(0,0, 2*pellet.radius, 2*pellet.radius);
 }
 
 var drawGridLine = function(x1, y1, x2, y2, context) {
@@ -212,20 +223,34 @@ var initializeEngine = function(gridWidth, gridHeight) {
 };
 
 var run = function() {
-    requestAnimationFrame(run);
     now = Date.now();
     delta = now - then;
 
     if (delta > INTERVAL) {
+        if(frame % 100 == 0)
+            console.log("delta:", delta);
         then = now - (delta % INTERVAL);
         CONTEXT.clearRect(0,0,WIDTH,HEIGHT);
-        // renderGridLines(CONTEXT);
-        createOffscreenGrid();
+        renderGridLines(CONTEXT);
+        //createOffscreenGrid();
         //engine.updateState();
         renderPellets();
         renderBubbles();
         //frame++;
     }
+    requestAnimationFrame(run);
+};
+
+var addPellet = function(pellet) {
+    var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
+    if(frame === 150) {
+        console.log("Pellet sample:", pellet, key);
+        frame = 0;
+    }
+    if(!pellets[key])
+        pellets[key] = [];
+    pellets[key].push(pellet);
+    frame++;
 };
 
 window.onload = function() {
@@ -248,6 +273,7 @@ window.onload = function() {
     });
 
     socket.on('state.update', function(stateVars) {
+        addPellet(stateVars.newPellet);
         bubbles = stateVars.bubbles;
         hero = bubbles[hero.id];
         stateVars.eatenPellets.forEach(function(pellet) {
@@ -260,18 +286,6 @@ window.onload = function() {
                     }
                 }
         });
-    });
-
-    socket.on('pellet', function(pellet) {
-        var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
-        if(frame === 150) {
-            console.log("Pellet sample:", pellet, key);
-            frame = 0;
-        }
-        if(!pellets[key])
-            pellets[key] = [];
-        pellets[key].push(pellet);
-        frame++;
     });
 };
 
