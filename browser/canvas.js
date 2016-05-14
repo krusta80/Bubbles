@@ -50,13 +50,6 @@ var getRandomColor = function() {
 };
 
 var renderPellet = function(pellet) {
-    if(pelletImage) {
-        //console.log("pasting");
-        CONTEXT.putImageData(pelletImage, pellet.x - heroCoords.x + CENTER.x - pellet.radius, pellet.y - heroCoords.y + CENTER.y - pellet.radius);
-    }
-     else {
-        createOffscreenCircle(pellet);
-        drawCircle(pellet.x - heroCoords.x + CENTER.x, pellet.y - heroCoords.y + CENTER.y, pellet.radius, pellet.color);
     //  if(pelletImage) {
     //     //console.log("pasting");
     //     CONTEXT.putImageData(pelletImage, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius);
