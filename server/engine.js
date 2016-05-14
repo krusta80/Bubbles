@@ -4,11 +4,13 @@ var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls,
 	gameFunctions.STARTING_RADIUS = radiusLength;
 	gameFunctions.STARTING_MAX_SPEED = 2*radiusLength;
 	this.FPS = framesPerSecond;
+	this.MAX_PELLETS = 100000;
 	this.width = width;
 	this.height = height;
 	this.bubbles = {};
 	this.bubbleKeys = [];
 	this.pellets = {};
+	this.pelletCount = 0;
 	this.eatenPellets = [];
 	this.frame = 0;
 	this.bouncyWalls = bouncyWalls;
@@ -52,6 +54,7 @@ Engine.prototype._spawnPellet = function() {
 	if(!this.pellets[key])
 		this.pellets[key] = [];
 	this.pellets[key].push(pellet);
+	this.pelletCount++;
 	return pellet;
 };
 
@@ -76,6 +79,7 @@ Engine.prototype.eatPellets = function(bubble) {
     					bubble.radius = gameFunctions.getPostGobbleRadius(bubble, pellet);
     					this.pellets[j+'-'+i].splice(p,1); p--;
     					eatenPellets.push(pellet);
+    					this.pelletCount--;
     				}
     			}
     var newMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
@@ -133,7 +137,7 @@ Engine.prototype.updateState = function(spawnPellet) {
 		}
 	}
 
-	if(spawnPellet)
+	if(spawnPellet && this.pelletCount < this.MAX_PELLETS)
 		this.newestPellet = this._spawnPellet();
 
 	var marked = [];
