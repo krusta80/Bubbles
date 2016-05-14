@@ -23,16 +23,20 @@ var engine;
 var pelletImage;
 var heroCoords = {};
 var startingOver = true;
+var pelletBoard;
 
 // takes in a position x and y at its center and radius to create a circle
-function drawCircle(centerX, centerY, radius, color, context) {
+function drawCircle(centerX, centerY, radius, color, context, linewidth) {
     if(!context)
         var context = CONTEXT;
+    if(!linewidth) {
+        linewidth = 5;
+    }
     context.beginPath();
     context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
     context.fillStyle = color;
     context.fill();
-    context.lineWidth = 5;
+    context.lineWidth = linewidth;
     //context.strokeStyle = '#003300';
     context.strokeStyle = color;
     context.stroke();
@@ -46,15 +50,39 @@ var getRandomColor = function() {
 };
 
 var renderPellet = function(pellet) {
-     if(pelletImage) {
+    if(pelletImage) {
         //console.log("pasting");
         CONTEXT.putImageData(pelletImage, pellet.x - heroCoords.x + CENTER.x - pellet.radius, pellet.y - heroCoords.y + CENTER.y - pellet.radius);
     }
      else {
         createOffscreenCircle(pellet);
         drawCircle(pellet.x - heroCoords.x + CENTER.x, pellet.y - heroCoords.y + CENTER.y, pellet.radius, pellet.color);
+    //  if(pelletImage) {
+    //     //console.log("pasting");
+    //     CONTEXT.putImageData(pelletImage, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius);
+    // }
+    //  else {
+    //     createOffscreenCircle(pellet);
+    //     drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
+    // }
+
+    if (!pellet.imgX || !pellet.imgY) {
+        pellet.imgX = getRandomInt(0,8);
+        pellet.imgY = getRandomInt(0,8);    
     }
+    
+    var image = pelletBoard.getContext('2d').getImageData(pellet.imgX*20,pellet.imgY*20,20,20);
+
+    // var img = new Image();
+    // img.src = image.data;
+    // debugger;
+    // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
+    CONTEXT.putImageData(image, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );    
 };
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 var renderHero = function() {
     //  hero is always at the center of the canvas
@@ -172,7 +200,7 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function(context) {
-    var cellSide = RADIUS_WIDTH * 2.5;    
+    var cellSide = RADIUS_WIDTH * 3;    
 
     var leftEdge = heroCoords.x - CENTER.x;
     var topEdge = heroCoords.y - CENTER.y;
@@ -199,8 +227,25 @@ var createOffscreenCircle = function(pellet) {
     pelletImage = offScreenContext.getImageData(0,0, 2*pellet.radius, 2*pellet.radius);
 }
 
+var createOffScreenPelletBoard = function(pellet) {
+    var offCvs = document.createElement('canvas');
+    offCvs.width = 240;
+    offCvs.height = 240;
+    var ctx = offCvs.getContext('2d');
+    ctx.fillStyle="rgba(255, 255, 255, 0)";
+    ctx.fillRect(0, 0, 240, 240);
+
+  var radiusOfCircle = 10;
+  for (var x = radiusOfCircle; x < offCvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
+    for (var y = radiusOfCircle; y < offCvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
+      drawCircle(x,y,radiusOfCircle - 3, getRandomColor(), ctx, 0);
+    }
+  }
+    pelletBoard = offCvs;
+}
+
 var drawGridLine = function(x1, y1, x2, y2, context) {
-    context.lineWidth = 1;
+    context.lineWidth = 2;
     context.beginPath();
     context.moveTo(x1,y1);
     context.lineTo(x2,y2);
@@ -265,10 +310,16 @@ var initializeVariables = function(vars) {
         FPS = vars.FPS;
         INTERVAL = 1000/FPS;
         pellets = vars.pellets;
+        
         //initializeEngine();
         initializeCanvas();
         initializeHero(vars.hero);
         //initializeEnemies(5000);
+
+
+        var pellet = pellets[Object.keys(pellets)[0]];
+        createOffScreenPelletBoard(pellet[0]);
+
         frame = 0;
 };
 
