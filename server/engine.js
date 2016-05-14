@@ -9,9 +9,11 @@ var Engine = function(framesPerSecond, radiusLength, width, height, bouncyWalls,
 	this.bubbles = {};
 	this.bubbleKeys = [];
 	this.pellets = {};
+	this.eatenPellets = [];
 	this.frame = 0;
 	this.bouncyWalls = bouncyWalls;
 	this.clientSide = clientSide;
+	this.newestPellet = {};
 };
 
 Engine.prototype.addBubbles = function(newBubbles) {
@@ -32,6 +34,58 @@ Engine.prototype._spawnBubble = function(newBubble) {
 	}
 	this.bubbles[newBubble.id] = newBubble;
 	this.bubbleKeys.push(newBubble.id);
+};
+
+Engine.prototype._spawnPellet = function() {
+	var pellet = {
+		x: Math.floor(Math.random()*this.width), 
+		y: Math.floor(Math.random()*this.height), 
+		radius: gameFunctions.STARTING_RADIUS/6,
+		color: gameFunctions.getRandomColor()
+	};
+
+	while(!this.isClear(pellet)) {
+		pellet.x = Math.floor(Math.random()*this.width);
+		pellet.y = Math.floor(Math.random()*this.height);
+	}
+	var key = Math.floor(pellet.x/gameFunctions.STARTING_RADIUS) + '-' + Math.floor(pellet.y/gameFunctions.STARTING_RADIUS);
+	if(!this.pellets[key])
+		this.pellets[key] = [];
+	this.pellets[key].push(pellet);
+	return pellet;
+};
+
+Engine.prototype.eatPellets = function(bubble) {
+	//	need to check all new "starting radius cells" covered
+	var leftEdge = bubble.x - bubble.radius;
+    var topEdge = bubble.y - bubble.radius;
+    var cellSide = gameFunctions.STARTING_RADIUS;
+    var leftmostCell = Math.ceil(leftEdge/cellSide);
+    var topmostCell = Math.ceil(topEdge/cellSide);
+	var oldMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
+	var cellsWide = Math.ceil(2*bubble.radius/gameFunctions.STARTING_RADIUS);
+						
+	var eatenPellets = [];
+
+    for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
+    	for(var i = topmostCell; i < topmostCell + 2*cellsWide; i++) 
+    		if(this.pellets[j+'-'+i])
+    			for(var p = 0; p < this.pellets[j+'-'+i].length; p++) {
+    				var pellet = this.pellets[j+'-'+i][p];
+    				if(gameFunctions.haveCollided(bubble, pellet)) {
+    					bubble.radius = gameFunctions.getPostGobbleRadius(bubble, pellet);
+    					this.pellets[j+'-'+i].splice(p,1); p--;
+    					eatenPellets.push(pellet);
+    				}
+    			}
+    var newMaxSpeed = gameFunctions.getMaxSpeed(bubble.radius);
+    if(eatenPellets.length > 0) {
+    	bubble.vector = {
+			dx: bubble.vector.dx * newMaxSpeed / oldMaxSpeed,
+			dy: bubble.vector.dy * newMaxSpeed / oldMaxSpeed
+		};					
+	}
+	return eatenPellets;
 };
 
 Engine.prototype.isClear = function(bubble) {
@@ -79,17 +133,28 @@ Engine.prototype.updateState = function() {
 		}
 	}
 
+	this.newestPellet = this._spawnPellet();
+
 	var marked = [];
 	//	next we check for collisions 						O(n^2)
 	for(var i = 0; i < this.bubbleKeys.length; i++) {
 		bubble = this.bubbles[this.bubbleKeys[i]];
+		
+		if(!bubble)
+			continue;
+
 		if(bubble.markedForRemoval) {
 			marked.push(bubble.id);
 			continue;
 		}
+		else
+			this.eatenPellets = this.eatPellets(bubble);
 
 		for(var j = i+1; j < this.bubbleKeys.length; j++) {
 			bubble2 = this.bubbles[this.bubbleKeys[j]];
+			if(!bubble2)
+				continue;
+
 			if(bubble && bubble2 && gameFunctions.haveCollided(bubble, bubble2)) {
 				tmp = gameFunctions.getCollisionResult(bubble, bubble2);
 				if(tmp.winner) {
