@@ -66,13 +66,14 @@ var renderPellet = function(pellet) {
         pellet.imgY = getRandomInt(0,8);    
     }
     
+
     var image = pelletBoard.getContext('2d').getImageData(pellet.imgX*20,pellet.imgY*20,20,20);
 
     // var img = new Image();
     // img.src = image.data;
     // debugger;
     // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
-    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius);    
+    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius,0,0,20/panFactor,20/panFactor);    
 };
 
 function getRandomInt(min, max) {
