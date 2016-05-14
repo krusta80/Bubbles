@@ -12,6 +12,7 @@ var INTERVAL;
 var frame;
 var now;
 var then = Date.now();
+var panFactor = 1;
 
 /**  GAME-RELATED VARIABLES **/
 var socket;                 //  socket.io connection to server
@@ -79,19 +80,12 @@ function getRandomInt(min, max) {
 
 var renderHero = function() {
     //  hero is always at the center of the canvas
-    drawCircle(CENTER.x, CENTER.y, hero.radius, hero.color);
+    drawCircle(CENTER.x, CENTER.y, hero.radius/panFactor, hero.color);
 };
 
 var renderBubbles = function() {
     //  This function must find all bubbles within canvas visual
     //  and transform their coordinates appropriately
-    var canvasEdges = {
-        left: heroCoords.x - CENTER.x,
-        top: heroCoords.y - CENTER.y,
-        right: heroCoords.x + CENTER.x,
-        bottom: heroCoords.y + CENTER.y
-    };
-
     bubbleKeys = Object.keys(bubbles);
 
     bubbleKeys.forEach(function(key) {
@@ -102,13 +96,13 @@ var renderBubbles = function() {
 };
 
 var renderBubble = function(bubble) {
-    drawCircle(bubble.x - heroCoords.x + CENTER.x, bubble.y - heroCoords.y + CENTER.y, bubble.radius, bubble.color);
+    drawCircle((bubble.x - heroCoords.x)/panFactor + CENTER.x, (bubble.y - heroCoords.y)/panFactor + CENTER.y * panFactor, bubble.radius/panFactor, bubble.color);
 };
 
 var renderPellets = function() {
     var leftEdge = heroCoords.x - CENTER.x;
     var topEdge = heroCoords.y - CENTER.y;
-    var cellSide = RADIUS_WIDTH;
+    var cellSide = RADIUS_WIDTH/panFactor;
     var leftmostCell = Math.ceil(leftEdge/cellSide);
     var topmostCell = Math.ceil(topEdge/cellSide);
     var cellsWide = Math.ceil(WIDTH/cellSide);
@@ -194,7 +188,7 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function(context) {
-    var cellSide = RADIUS_WIDTH * 3;    
+    var cellSide = RADIUS_WIDTH * 3 / panFactor;    
 
     var leftEdge = heroCoords.x - CENTER.x;
     var topEdge = heroCoords.y - CENTER.y;
