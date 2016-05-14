@@ -21,6 +21,8 @@ var bubbleKeys = [];
 var pellets = {};
 var engine; 
 var pelletImage;
+var heroCoords = {};
+var startingOver = true;
 
 // takes in a position x and y at its center and radius to create a circle
 function drawCircle(centerX, centerY, radius, color, context) {
@@ -46,11 +48,11 @@ var getRandomColor = function() {
 var renderPellet = function(pellet) {
      if(pelletImage) {
         //console.log("pasting");
-        CONTEXT.putImageData(pelletImage, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius);
+        CONTEXT.putImageData(pelletImage, pellet.x - heroCoords.x + CENTER.x - pellet.radius, pellet.y - heroCoords.y + CENTER.y - pellet.radius);
     }
      else {
         createOffscreenCircle(pellet);
-        drawCircle(pellet.x - hero.x + CENTER.x, pellet.y - hero.y + CENTER.y, pellet.radius, pellet.color);
+        drawCircle(pellet.x - heroCoords.x + CENTER.x, pellet.y - heroCoords.y + CENTER.y, pellet.radius, pellet.color);
     }
 };
 
@@ -63,10 +65,10 @@ var renderBubbles = function() {
     //  This function must find all bubbles within canvas visual
     //  and transform their coordinates appropriately
     var canvasEdges = {
-        left: hero.x - CENTER.x,
-        top: hero.y - CENTER.y,
-        right: hero.x + CENTER.x,
-        bottom: hero.y + CENTER.y
+        left: heroCoords.x - CENTER.x,
+        top: heroCoords.y - CENTER.y,
+        right: heroCoords.x + CENTER.x,
+        bottom: heroCoords.y + CENTER.y
     };
 
     bubbleKeys = Object.keys(bubbles);
@@ -79,12 +81,12 @@ var renderBubbles = function() {
 };
 
 var renderBubble = function(bubble) {
-    drawCircle(bubble.x - hero.x + CENTER.x, bubble.y - hero.y + CENTER.y, bubble.radius, bubble.color);
+    drawCircle(bubble.x - heroCoords.x + CENTER.x, bubble.y - heroCoords.y + CENTER.y, bubble.radius, bubble.color);
 };
 
 var renderPellets = function() {
-    var leftEdge = hero.x - CENTER.x;
-    var topEdge = hero.y - CENTER.y;
+    var leftEdge = heroCoords.x - CENTER.x;
+    var topEdge = heroCoords.y - CENTER.y;
     var cellSide = RADIUS_WIDTH;
     var leftmostCell = Math.floor(leftEdge/cellSide);
     var topmostCell = Math.floor(topEdge/cellSide);
@@ -146,7 +148,8 @@ var getMouseCoords = function(e) {
 };
 
 var updateHeroVector = function(mouseDx, mouseDy) {
-    socket.emit('player.move', {id: hero.id, dx: mouseDx, dy: mouseDy});
+    if(hero)
+        socket.emit('player.move', {id: hero.id, dx: mouseDx, dy: mouseDy});
     //hero.vector = gameFunctions.getPlayerVector(hero, mouseDx, mouseDy);
 };
 
@@ -171,8 +174,8 @@ var inRange = function(bubble) {
 var renderGridLines = function(context) {
     var cellSide = RADIUS_WIDTH * 2.5;    
 
-    var leftEdge = hero.x - CENTER.x;
-    var topEdge = hero.y - CENTER.y;
+    var leftEdge = heroCoords.x - CENTER.x;
+    var topEdge = heroCoords.y - CENTER.y;
     var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
     var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
@@ -208,6 +211,7 @@ var drawGridLine = function(x1, y1, x2, y2, context) {
 var initializeHero = function(serverHero) {
     //  for now, we just generate another random bubble
     hero = serverHero;
+    heroCoords = {x: hero.x, y: hero.y};
     bubbles[hero.name] = hero;
 };
 
@@ -226,7 +230,7 @@ var run = function() {
     now = Date.now();
     delta = now - then;
 
-    if (delta > INTERVAL) {
+    if (delta > INTERVAL && hero) {
         if(frame % 100 == 0)
             console.log("delta:", delta);
         then = now - (delta % INTERVAL);
@@ -253,7 +257,7 @@ var addPellet = function(pellet) {
     frame++;
 };
 
-var initializeVariables = function() {
+var initializeVariables = function(vars) {
     console.log("Welcome package:", vars);
         RADIUS_WIDTH = vars.RADIUS_WIDTH;
         GRID_WIDTH = vars.GRID_WIDTH;
@@ -269,8 +273,16 @@ var initializeVariables = function() {
 };
 
 var startOver = function() {
-    //  clear out variables
-    socket.emit('iWannaPlay', {name: 'Test Player'});
+    startingOver = true;
+    setTimeout(function() {
+        //  clear out variables
+        bubbles = {};           //  ALL bubbles
+        bubbleKeys = [];
+        pellets = {};
+        //engine; 
+        socket.emit('iWannaPlay', {name: 'Test Player'});
+    }.bind(this), 5000);
+    console.log("Respawning in 5 seconds...");
 };
 
 window.onload = function() {
@@ -288,13 +300,16 @@ window.onload = function() {
     });
 
     socket.on('state.update', function(stateVars) {
-        if(!hero)
-            return;
         addPellet(stateVars.newPellet);
         bubbles = stateVars.bubbles;
-        hero = bubbles[hero.id];
-        if(!hero)
+        if(hero && bubbles[hero.id]) {
+            startingOver = false;
+            hero = bubbles[hero.id];
+            heroCoords = {x: hero.x, y: hero.y};
+        }
+        else if(!startingOver) {
             startOver();
+        }
         stateVars.eatenPellets.forEach(function(pellet) {
             var key = Math.floor(pellet.x/RADIUS_WIDTH) + '-' + Math.floor(pellet.y/RADIUS_WIDTH);
             if(pellets[key])
