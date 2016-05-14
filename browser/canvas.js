@@ -229,7 +229,7 @@ var run = function() {
 };
 
 window.onload = function() {
-    socket = io('http://localhost:1337', {query: "name=-1"});
+    socket = io('http://pandora.dyndns.biz:1337', {query: "name=-1"});
 
     socket.on('welcome', function(vars) {
         console.log("Welcome package:", vars);
