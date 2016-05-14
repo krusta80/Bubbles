@@ -12,7 +12,7 @@ var INTERVAL;
 var frame;
 var now;
 var then = Date.now();
-var panFactor = 2;
+var panFactor = 1;
 
 /**  GAME-RELATED VARIABLES **/
 var socket;                 //  socket.io connection to server
@@ -375,6 +375,8 @@ window.onload = function() {
         if(hero && bubbles[hero.id]) {
             startingOver = false;
             hero = bubbles[hero.id];
+            if(hero.radius && hero.radius > 3/4 * CENTER.X * panFactor)
+                panFactor++;
             heroCoords = {x: hero.x, y: hero.y};
         }
         else if(!startingOver) {
