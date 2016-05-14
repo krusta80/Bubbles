@@ -12,7 +12,7 @@ var INTERVAL;
 var frame;
 var now;
 var then = Date.now();
-var panFactor = 1;
+var panFactor = 2;
 
 /**  GAME-RELATED VARIABLES **/
 var socket;                 //  socket.io connection to server
@@ -25,6 +25,7 @@ var pelletImage;
 var heroCoords = {};
 var startingOver = true;
 var pelletBoard;
+var leaderBoard;
 
 // takes in a position x and y at its center and radius to create a circle
 function drawCircle(centerX, centerY, radius, color, context, linewidth) {
@@ -71,7 +72,7 @@ var renderPellet = function(pellet) {
     // img.src = image.data;
     // debugger;
     // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
-    CONTEXT.putImageData(image, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );    
+    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/2 + CENTER.y - pellet.radius);    
 };
 
 function getRandomInt(min, max) {
@@ -81,6 +82,7 @@ function getRandomInt(min, max) {
 var renderHero = function() {
     //  hero is always at the center of the canvas
     drawCircle(CENTER.x, CENTER.y, hero.radius/panFactor, hero.color);
+    //CONTEXT.fillText(hero.name, CENTER.x-10, CENTER.y+2);
 };
 
 var renderBubbles = function() {
@@ -96,17 +98,17 @@ var renderBubbles = function() {
 };
 
 var renderBubble = function(bubble) {
-    drawCircle((bubble.x - heroCoords.x)/panFactor + CENTER.x, (bubble.y - heroCoords.y)/panFactor + CENTER.y * panFactor, bubble.radius/panFactor, bubble.color);
+    drawCircle((bubble.x - heroCoords.x)/panFactor + CENTER.x, (bubble.y - heroCoords.y)/panFactor + CENTER.y, bubble.radius/panFactor, bubble.color);
 };
 
 var renderPellets = function() {
-    var leftEdge = heroCoords.x - CENTER.x;
-    var topEdge = heroCoords.y - CENTER.y;
-    var cellSide = RADIUS_WIDTH/panFactor;
+    var leftEdge = heroCoords.x - panFactor*CENTER.x;
+    var topEdge = heroCoords.y - panFactor*CENTER.y;
+    var cellSide = RADIUS_WIDTH;
     var leftmostCell = Math.ceil(leftEdge/cellSide);
     var topmostCell = Math.ceil(topEdge/cellSide);
-    var cellsWide = Math.ceil(WIDTH/cellSide);
-    var cellsHigh = Math.ceil(HEIGHT/cellSide);
+    var cellsWide = Math.ceil(panFactor*WIDTH/cellSide);
+    var cellsHigh = Math.ceil(panFactor*HEIGHT/cellSide);
 
     for(var j = leftmostCell; j < leftmostCell + cellsWide; j++) 
         for(var i = topmostCell; i < topmostCell + cellsHigh; i++) {
@@ -188,17 +190,16 @@ var inRange = function(bubble) {
 };
 
 var renderGridLines = function(context) {
-    var cellSide = RADIUS_WIDTH * 3 / panFactor;    
+    var cellSide = RADIUS_WIDTH * 3;    
+    var leftEdge = heroCoords.x - panFactor*CENTER.x;
+    var topEdge = heroCoords.y - panFactor*CENTER.y;
+    var leftmostGridLine = (Math.ceil(leftEdge/cellSide)*cellSide - leftEdge)/panFactor;
+    var topmostGridLine = (Math.ceil(topEdge/cellSide)*cellSide - topEdge)/panFactor;
 
-    var leftEdge = heroCoords.x - CENTER.x;
-    var topEdge = heroCoords.y - CENTER.y;
-    var leftmostGridLine = Math.ceil(leftEdge/cellSide)*cellSide - leftEdge;
-    var topmostGridLine = Math.ceil(topEdge/cellSide)*cellSide - topEdge;
 
-
-    for(var x = leftmostGridLine; x < WIDTH; x += cellSide)
+    for(var x = leftmostGridLine; x < WIDTH; x += cellSide/panFactor)
         drawGridLine(x, 0, x, HEIGHT, context);
-    for(var y = topmostGridLine; y < HEIGHT; y += cellSide)
+    for(var y = topmostGridLine; y < HEIGHT; y += cellSide/panFactor)
         drawGridLine(0, y, WIDTH, y, context);
 
 };
@@ -328,10 +329,10 @@ window.onload = function() {
     socket = io(host, {query: "name=-1"});
 
     socket.on('acknowledged', function(connection) {
-        setTimeout(function() {
-            socket.emit('iWannaPlay', {name: 'Test Player'});
-        }.bind(this), 5000);
-        console.log("Respawning in 5 seconds...");
+        // setTimeout(function() {
+        //     socket.emit('iWannaPlay', {name: 'Test Player'});
+        // }.bind(this), 5000);
+        // console.log("Respawning in 5 seconds...");
     });
 
     socket.on('welcome', function(vars) {
@@ -363,6 +364,23 @@ window.onload = function() {
                     }
                 }
         });
+    });
+
+    socket.on('leaderBoard', function(leaderboard) {
+      
+      // {name: bubble.name, id: bubble.id, score: bubble.score};
+      var template = ""
+
+      if (leaderboard.length === 0) {
+        template = "<div class='throne'>THE THRONE IS OPEN</div>";
+      } else {
+        for (var i = 0; i < leaderboard.length; i++) {    
+          template += "<tr><th>" + i+1 + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
+        }  
+      }
+      
+      $('.leaderboardBody').html(template);
+
     });
 
     run();  //  this used to be in the on welcome listener
