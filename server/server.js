@@ -1,3 +1,4 @@
+'use strict';
 /** 
 		This is a socket.io server used to host real-time multiplayer
 		games.  In this instance, the game is called Bubbles, which 
@@ -5,9 +6,17 @@
 **/
 
 var port = process.env.PORT || 1337;
-var io = require('socket.io').listen(port);
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
+
 var Engine = require('./engine');''
 var gameFunctions = require('./functions');
+var path = require('path');
+
+server.listen(port);
+
 var FPS = 80;
 var leaderBoard = [];
 
@@ -18,6 +27,17 @@ const GRID_HEIGHT = 10000;
 var engine = new Engine(-1, RADIUS_WIDTH, GRID_WIDTH, GRID_HEIGHT, false);
 var bubbles = engine.bubbles;
 var playerCount = 0;
+
+
+var rootPath = path.join(__dirname, '../');
+var indexPath = path.join(rootPath, './browser/index.html');
+app.use(express.static(path.join(rootPath, './browser')));
+app.use('/node_modules',express.static(path.join(rootPath, './node_modules')));
+
+app.use('/*',function(req,res) {
+	res.sendFile(indexPath);
+});
+
 
 console.log("Socket.io listening on port", port);
 
