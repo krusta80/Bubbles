@@ -29,16 +29,6 @@ var bubbles = engine.bubbles;
 var playerCount = 0;
 
 
-var rootPath = path.join(__dirname, '../');
-var indexPath = path.join(rootPath, './browser/index.html');
-app.use(express.static(path.join(rootPath, './browser')));
-app.use('/node_modules',express.static(path.join(rootPath, './node_modules')));
-
-app.use('/*',function(req,res) {
-	res.sendFile(indexPath);
-});
-
-
 console.log("Socket.io listening on port", port);
 
 io.on('connection', function (socket) {
