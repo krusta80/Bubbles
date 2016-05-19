@@ -365,7 +365,7 @@ var startOver = function() {
 };
 
 window.onload = function() {
-    var server = host || "http://bubblesio.herokuapp.com:1337"
+    var server = host || "http://localhost:1337"
     socket = io(server, {query: "name=-1"});
 
     socket.on('acknowledged', function(connection) {
