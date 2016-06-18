@@ -24,7 +24,7 @@ var engine;
 var pelletImage;
 var heroCoords = {};
 var startingOver = true;
-var pelletBoard;
+var pelletBoard = [];
 var leaderBoard;
 
 // takes in a position x and y at its center and radius to create a circle
@@ -67,13 +67,13 @@ var renderPellet = function(pellet) {
     }
     
 
-    var image = pelletBoard.getContext('2d').getImageData(pellet.imgX*20,pellet.imgY*20,20,20);
+    var image = pelletBoard[panFactor-1].getContext('2d').getImageData((pellet.imgX*20)/panFactor,(pellet.imgY*20)/panFactor,20/panFactor,20/panFactor);
 
     // var img = new Image();
     // img.src = image.data;
     // debugger;
     // CONTEXT.drawImage(img, pellet.x - hero.x + CENTER.x - pellet.radius, pellet.y - hero.y + CENTER.y - pellet.radius );
-    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius,0,0,20/panFactor,20/panFactor);    
+    CONTEXT.putImageData(image, (pellet.x - hero.x)/panFactor + CENTER.x - pellet.radius, (pellet.y - hero.y)/panFactor + CENTER.y - pellet.radius);    
 };
 
 function getRandomInt(min, max) {
@@ -243,20 +243,28 @@ var createOffscreenCircle = function(pellet) {
 }
 
 var createOffScreenPelletBoard = function(pellet) {
-    var offCvs = document.createElement('canvas');
-    offCvs.width = 240;
-    offCvs.height = 240;
-    var ctx = offCvs.getContext('2d');
-    ctx.fillStyle="rgba(255, 255, 255, 0)";
-    ctx.fillRect(0, 0, 240, 240);
+    var offCvs;
+    for (var i = 1; i < 4; i++) {
+        offCvs = document.createElement('canvas');
+        offCvs.width = 240/i;
+        offCvs.height = 240/i;
+        var ctx = offCvs.getContext('2d');
+        ctx.fillStyle="rgba(255, 255, 255, 0)";
+        ctx.fillRect(0, 0, 240, 240);
 
-  var radiusOfCircle = 10;
-  for (var x = radiusOfCircle; x < offCvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
-    for (var y = radiusOfCircle; y < offCvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
-      drawCircle(x,y,radiusOfCircle - 3, getRandomColor(), ctx, 0);
+        var radiusOfCircle = 10/i;
+        // 4 panfactors
+        for (var x = radiusOfCircle; x < offCvs.width-radiusOfCircle; x+=((2*radiusOfCircle))) {
+          for (var y = radiusOfCircle; y < offCvs.height-radiusOfCircle; y+=((2*radiusOfCircle))) {
+            drawCircle(x,y,radiusOfCircle - 3/i, getRandomColor(), ctx, 0);
+          }
+        }
+
+        pelletBoard.push(offCvs);
+        
+
     }
-  }
-    pelletBoard = offCvs;
+  
 }
 
 var drawGridLine = function(x1, y1, x2, y2, context) {
@@ -358,7 +366,8 @@ var startOver = function() {
 };
 
 window.onload = function() {
-    socket = io(host, {query: "name=-1"});
+    var server = host || "http://localhost:1337"
+    socket = io(server, {query: "name=-1"});
 
     socket.on('acknowledged', function(connection) {
         // setTimeout(function() {
@@ -408,6 +417,16 @@ window.onload = function() {
       if (leaderboard.length === 0) {
         template = "<div style='width: 100%; position: absolute;' class='throne danger'><strong>THE THRONE IS OPEN</strong></div>";
       } else {
+        leaderboard = leaderboard.sort(function (a, b) {
+          if (a.score < b.score) {
+            return 1;
+          }
+          if (a.score > b.score) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
+        });
         for (var i = 0; i < leaderboard.length; i++) {    
           template += "<tr><th>" + (i+1) + "</th><td>" + leaderboard[i].name + "</td><td>" + Math.round(leaderboard[i].score) + "</td></tr>"  
         }  
