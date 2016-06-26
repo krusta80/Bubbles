@@ -5,7 +5,7 @@
 		is a blatant albeit well-intentioned ripoff of agar.io
 **/
 
-var port = process.env.PORT || 1337;
+var port = process.env.PORT || 1339;
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -16,6 +16,10 @@ var gameFunctions = require('./functions');
 var path = require('path');
 
 server.listen(port);
+
+console.log(__dirname + '/../browser/');
+app.use(express.static(__dirname + '/../browser/'))
+app.use(express.static(__dirname + '/../node_modules/'))
 
 var FPS = 80;
 var leaderBoard = [];
